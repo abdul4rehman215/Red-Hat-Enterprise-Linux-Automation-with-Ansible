@@ -1,0 +1,3 @@
+vault_database_password: "DevDBPassword123"
+vault_api_secret: "dev-secret-key-789"
+vault_ssl_key: "devssl-private-key"
