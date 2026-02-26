@@ -1,0 +1,12 @@
+---
+- name: Apply database-management role (PostgreSQL)
+  hosts: postgresql_servers
+  become: yes
+  vars:
+    database_type: "postgresql"
+    postgresql_listen_addresses: "*"
+    backup_enabled: true
+    monitoring_enabled: true
+    security_hardening: true
+  roles:
+    - database-management
