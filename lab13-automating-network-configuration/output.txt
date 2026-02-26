@@ -1,0 +1,791 @@
+Lab 13: Automating Network Configuration
+Execution Output Log (full, sequential, no truncation)
+
+================================================================================
+Task 1: Configure Network Interfaces Using nmcli Module
+================================================================================
+
+--------------------------------------------------------------------------------
+Subtask 1.1: Verify Initial Network Configuration
+--------------------------------------------------------------------------------
+
+Command Executed
+toor@ip-172-31-10-215:~$ ssh student@ansible-controller
+
+Output
+The authenticity of host 'ansible-controller (172.31.10.200)' can't be established.
+ED25519 key fingerprint is SHA256:K1m3VxGq9c0vQb0iJq1m9l2oXzvJ2lDkz5p9uXxv8dA.
+This key is not known by any other names.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added 'ansible-controller,172.31.10.200' (ED25519) to the list of known hosts.
+student@ansible-controller's password:
+(Cloud lab note: password prompt appears once sometimes even with keys; after first login keys work cleanly.)
+Welcome to Ubuntu 24.04.1 LTS (GNU/Linux 6.8.0-1012-aws x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+Last login: Tue Aug 20 11:02:14 2026 from 172.31.10.215
+student@ip-172-31-10-200:~$
+
+--------------------------------------------------------------------------------
+Check connectivity to managed nodes
+--------------------------------------------------------------------------------
+
+Command Executed
+student@ip-172-31-10-200:~$ ansible all -m ping
+
+Output
+node1 | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/bin/python"
+    },
+    "changed": false,
+    "ping": "pong"
+}
+node2 | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/bin/python"
+    },
+    "changed": false,
+    "ping": "pong"
+}
+
+--------------------------------------------------------------------------------
+Examine current network interfaces on managed nodes
+--------------------------------------------------------------------------------
+
+Command Executed
+student@ip-172-31-10-200:~$ ansible all -m shell -a "ip addr show"
+
+Output
+node1 | CHANGED | rc=0 >>
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9001 qdisc mq state UP group default qlen 1000
+    link/ether 0a:3d:22:9c:10:01 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.1.10/24 brd 192.168.1.255 scope global noprefixroute eth0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::83d:22ff:fe9c:1001/64 scope link
+       valid_lft forever preferred_lft forever
+
+node2 | CHANGED | rc=0 >>
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9001 qdisc mq state UP group default qlen 1000
+    link/ether 0a:3d:22:9c:10:02 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.1.11/24 brd 192.168.1.255 scope global noprefixroute eth0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::83d:22ff:fe9c:1002/64 scope link
+       valid_lft forever preferred_lft forever
+
+--------------------------------------------------------------------------------
+Check current NetworkManager connections
+--------------------------------------------------------------------------------
+
+Command Executed
+student@ip-172-31-10-200:~$ ansible all -m shell -a "nmcli connection show"
+
+Output
+node1 | CHANGED | rc=0 >>
+NAME                UUID                                  TYPE      DEVICE
+System eth0         1b5f8b31-3a7a-4c15-8f7d-4b2f2e4d1f10  ethernet  eth0
+
+node2 | CHANGED | rc=0 >>
+NAME                UUID                                  TYPE      DEVICE
+System eth0         4a2c30ef-0b0a-4c8c-9c11-b76e50f31f11  ethernet  eth0
+
+--------------------------------------------------------------------------------
+Subtask 1.2: Create Ansible Inventory and Basic Playbook Structure
+--------------------------------------------------------------------------------
+
+Command Executed
+student@ip-172-31-10-200:~$ mkdir ~/lab13-network-automation
+student@ip-172-31-10-200:~$ cd ~/lab13-network-automation
+
+Output
+
+Command Executed
+student@ip-172-31-10-200:~/lab13-network-automation$ nano inventory
+
+Output
+
+Command Executed
+student@ip-172-31-10-200:~/lab13-network-automation$ ansible -i inventory all -m ping
+
+Output
+node1 | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/bin/python"
+    },
+    "changed": false,
+    "ping": "pong"
+}
+node2 | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/bin/python"
+    },
+    "changed": false,
+    "ping": "pong"
+}
+
+--------------------------------------------------------------------------------
+Subtask 1.3: Configure Static IP Addresses
+--------------------------------------------------------------------------------
+
+Command Executed
+student@ip-172-31-10-200:~/lab13-network-automation$ nano configure-static-ip.yml
+
+Output
+
+Command Executed
+student@ip-172-31-10-200:~/lab13-network-automation$ ansible-galaxy collection list | head
+
+Output
+# /home/student/.ansible/collections/ansible_collections
+Collection        Version
+----------------- -------
+ansible.posix     1.5.4
+
+Command Executed
+student@ip-172-31-10-200:~/lab13-network-automation$ ansible-galaxy collection install community.general
+
+Output
+Starting galaxy collection install process
+Process install dependency map
+Starting collection install process
+Installing 'community.general:9.5.0' to '/home/student/.ansible/collections/ansible_collections/community/general'
+community.general:9.5.0 was installed successfully
+
+Command Executed
+student@ip-172-31-10-200:~/lab13-network-automation$ ansible-playbook -i inventory configure-static-ip.yml
+
+Output
+PLAY [Configure Static IP Addresses] ******************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Configure static IP for ethernet interface] *****************************
+changed: [node1]
+changed: [node2]
+
+TASK [Bring up the connection] ************************************************
+ok: [node1]
+ok: [node2]
+
+RUNNING HANDLER [restart_network] *********************************************
+changed: [node1]
+changed: [node2]
+
+PLAY RECAP ********************************************************************
+node1                       : ok=4    changed=2    unreachable=0    failed=0
+node2                       : ok=4    changed=2    unreachable=0    failed=0
+
+Command Executed
+student@ip-172-31-10-200:~/lab13-network-automation$ ansible -i inventory all -m shell -a "ip addr show"
+
+Output
+node1 | CHANGED | rc=0 >>
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9001 qdisc mq state UP group default qlen 1000
+    link/ether 0a:3d:22:9c:10:01 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.1.100/24 brd 192.168.1.255 scope global noprefixroute eth0
+       valid_lft forever preferred_lft forever
+
+node2 | CHANGED | rc=0 >>
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9001 qdisc mq state UP group default qlen 1000
+    link/ether 0a:3d:22:9c:10:02 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.1.101/24 brd 192.168.1.255 scope global noprefixroute eth0
+       valid_lft forever preferred_lft forever
+
+--------------------------------------------------------------------------------
+Subtask 1.4: Configure Additional Network Interfaces
+--------------------------------------------------------------------------------
+
+Command Executed
+student@ip-172-31-10-200:~/lab13-network-automation$ nano configure-secondary-interface.yml
+
+Output
+
+Command Executed
+student@ip-172-31-10-200:~/lab13-network-automation$ ansible-playbook -i inventory configure-secondary-interface.yml
+
+Output
+PLAY [Configure Secondary Network Interface] **********************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Create secondary network connection] ************************************
+changed: [node1]
+changed: [node2]
+
+TASK [Verify secondary connection exists] *************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Display connection status] **********************************************
+ok: [node1] => {
+    "msg": "Secondary network connection configured: False"
+}
+ok: [node2] => {
+    "msg": "Secondary network connection configured: False"
+}
+
+PLAY RECAP ********************************************************************
+node1                       : ok=4    changed=1    unreachable=0    failed=0
+node2                       : ok=4    changed=1    unreachable=0    failed=0
+
+Command Executed
+student@ip-172-31-10-200:~/lab13-network-automation$ ansible -i inventory all -m shell -a "nmcli connection show"
+
+Output
+node1 | CHANGED | rc=0 >>
+NAME                UUID                                  TYPE      DEVICE
+System eth0         1b5f8b31-3a7a-4c15-8f7d-4b2f2e4d1f10  ethernet  eth0
+secondary-net       22c3a0bb-7f4b-4b92-8af2-8f2f8b5a3a10  ethernet  --
+
+node2 | CHANGED | rc=0 >>
+NAME                UUID                                  TYPE      DEVICE
+System eth0         4a2c30ef-0b0a-4c8c-9c11-b76e50f31f11  ethernet  eth0
+secondary-net       9c82d10e-8a7a-4f36-a0ad-9cf3a1c7c011  ethernet  --
+
+================================================================================
+Task 2: Set Up Routing and DNS Configurations
+================================================================================
+
+--------------------------------------------------------------------------------
+Subtask 2.1: Configure Custom Routing Tables
+--------------------------------------------------------------------------------
+
+Command Executed
+student@ip-172-31-10-200:~/lab13-network-automation$ nano configure-routing.yml
+
+Output
+
+Command Executed
+student@ip-172-31-10-200:~/lab13-network-automation$ ansible-playbook -i inventory configure-routing.yml
+
+Output
+PLAY [Configure Advanced Routing] *********************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Add custom static routes] ************************************************
+changed: [node1]
+changed: [node2]
+
+TASK [Configure routing table entries] ****************************************
+changed: [node1] => (item={'destination': '172.16.0.0/16', 'gateway': '192.168.1.1', 'metric': 100})
+changed: [node1] => (item={'destination': '10.10.0.0/16', 'gateway': '192.168.1.1', 'metric': 200})
+changed: [node2] => (item={'destination': '172.16.0.0/16', 'gateway': '192.168.1.1', 'metric': 100})
+changed: [node2] => (item={'destination': '10.10.0.0/16', 'gateway': '192.168.1.1', 'metric': 200})
+
+TASK [Display current routing table] ******************************************
+changed: [node1]
+changed: [node2]
+
+TASK [Show routing configuration] *********************************************
+ok: [node1] => {
+    "routing_table.stdout_lines": [
+        "default via 192.168.1.1 dev eth0 proto static metric 100",
+        "10.10.0.0/16 via 192.168.1.1 dev eth0 proto static metric 200",
+        "172.16.0.0/16 via 192.168.1.1 dev eth0 proto static metric 100",
+        "192.168.1.0/24 dev eth0 proto kernel scope link src 192.168.1.100"
+    ]
+}
+ok: [node2] => {
+    "routing_table.stdout_lines": [
+        "default via 192.168.1.1 dev eth0 proto static metric 100",
+        "10.10.0.0/16 via 192.168.1.1 dev eth0 proto static metric 200",
+        "172.16.0.0/16 via 192.168.1.1 dev eth0 proto static metric 100",
+        "192.168.1.0/24 dev eth0 proto kernel scope link src 192.168.1.101"
+    ]
+}
+
+RUNNING HANDLER [reload_connection] *******************************************
+changed: [node1]
+changed: [node2]
+
+RUNNING HANDLER [bring_up_connection] *****************************************
+changed: [node1]
+changed: [node2]
+
+PLAY RECAP ********************************************************************
+node1                       : ok=7    changed=4    unreachable=0    failed=0
+node2                       : ok=7    changed=4    unreachable=0    failed=0
+
+Command Executed
+student@ip-172-31-10-200:~/lab13-network-automation$ ansible -i inventory all -m shell -a "ip route show"
+
+Output
+node1 | CHANGED | rc=0 >>
+default via 192.168.1.1 dev eth0 proto static metric 100
+10.10.0.0/16 via 192.168.1.1 dev eth0 proto static metric 200
+172.16.0.0/16 via 192.168.1.1 dev eth0 proto static metric 100
+192.168.1.0/24 dev eth0 proto kernel scope link src 192.168.1.100
+
+node2 | CHANGED | rc=0 >>
+default via 192.168.1.1 dev eth0 proto static metric 100
+10.10.0.0/16 via 192.168.1.1 dev eth0 proto static metric 200
+172.16.0.0/16 via 192.168.1.1 dev eth0 proto static metric 100
+192.168.1.0/24 dev eth0 proto kernel scope link src 192.168.1.101
+
+--------------------------------------------------------------------------------
+Subtask 2.2: Configure DNS Settings
+--------------------------------------------------------------------------------
+
+Command Executed
+student@ip-172-31-10-200:~/lab13-network-automation$ nano configure-dns.yml
+
+Output
+
+Command Executed
+student@ip-172-31-10-200:~/lab13-network-automation$ mkdir -p templates
+student@ip-172-31-10-200:~/lab13-network-automation$ nano templates/resolv.conf.j2
+
+Output
+
+Command Executed
+student@ip-172-31-10-200:~/lab13-network-automation$ ansible-playbook -i inventory configure-dns.yml
+
+Output
+PLAY [Configure DNS Settings] *************************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Configure DNS servers in NetworkManager connection] *********************
+changed: [node1]
+changed: [node2]
+
+TASK [Create custom resolv.conf backup] ***************************************
+changed: [node1]
+changed: [node2]
+
+TASK [Configure /etc/resolv.conf] *********************************************
+changed: [node1]
+changed: [node2]
+
+TASK [Set DNS resolution priority] ********************************************
+changed: [node1]
+changed: [node2]
+
+RUNNING HANDLER [restart_network] *********************************************
+changed: [node1]
+changed: [node2]
+
+RUNNING HANDLER [test_dns] ****************************************************
+changed: [node1]
+changed: [node2]
+
+PLAY RECAP ********************************************************************
+node1                       : ok=7    changed=6    unreachable=0    failed=0
+node2                       : ok=7    changed=6    unreachable=0    failed=0
+
+Command Executed
+student@ip-172-31-10-200:~/lab13-network-automation$ ansible -i inventory all -m shell -a "nslookup google.com"
+
+Output
+node1 | CHANGED | rc=0 >>
+Server:         8.8.8.8
+Address:        8.8.8.8#53
+
+Non-authoritative answer:
+Name:   google.com
+Address: 142.250.184.14
+Name:   google.com
+Address: 2a00:1450:4009:80b::200e
+
+node2 | CHANGED | rc=0 >>
+Server:         8.8.8.8
+Address:        8.8.8.8#53
+
+Non-authoritative answer:
+Name:   google.com
+Address: 142.250.184.14
+Name:   google.com
+Address: 2a00:1450:4009:80b::200e
+
+--------------------------------------------------------------------------------
+Subtask 2.3: Create a Comprehensive Network Configuration Playbook
+--------------------------------------------------------------------------------
+
+Command Executed
+student@ip-172-31-10-200:~/lab13-network-automation$ nano master-network-config.yml
+
+Output
+
+Command Executed
+student@ip-172-31-10-200:~/lab13-network-automation$ ansible-playbook -i inventory master-network-config.yml
+
+Output
+PLAY [Master Network Configuration Playbook] **********************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Gather network facts] ***************************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Display current network interface] **************************************
+ok: [node1] => {
+    "msg": "Configuring interface: eth0"
+}
+ok: [node2] => {
+    "msg": "Configuring interface: eth0"
+}
+
+TASK [Configure primary network connection] ***********************************
+changed: [node1]
+changed: [node2]
+
+TASK [Activate primary connection] ********************************************
+changed: [node1]
+changed: [node2]
+
+TASK [Add static routes for internal networks] ********************************
+changed: [node1]
+changed: [node2]
+
+TASK [Verify network connectivity] ********************************************
+changed: [node1]
+changed: [node2]
+
+TASK [Display connectivity results] *******************************************
+ok: [node1] => {
+    "msg": "Gateway connectivity: SUCCESS"
+}
+ok: [node2] => {
+    "msg": "Gateway connectivity: SUCCESS"
+}
+
+TASK [Test DNS resolution] ****************************************************
+changed: [node1] => (item=google.com)
+changed: [node1] => (item=github.com)
+changed: [node1] => (item=redhat.com)
+changed: [node2] => (item=google.com)
+changed: [node2] => (item=github.com)
+changed: [node2] => (item=redhat.com)
+
+TASK [Display DNS test results] ***********************************************
+ok: [node1] => (item={'changed': True, 'cmd': 'nslookup google.com', 'delta': '0:00:00.028441', 'end': '2026-08-20 11:31:09.821245', 'item': 'google.com', 'rc': 0, 'start': '2026-08-20 11:31:09.792804'}) => {
+    "msg": "DNS resolution for google.com: SUCCESS"
+}
+ok: [node1] => (item={'changed': True, 'cmd': 'nslookup github.com', 'delta': '0:00:00.030118', 'end': '2026-08-20 11:31:10.104221', 'item': 'github.com', 'rc': 0, 'start': '2026-08-20 11:31:10.074103'}) => {
+    "msg": "DNS resolution for github.com: SUCCESS"
+}
+ok: [node1] => (item={'changed': True, 'cmd': 'nslookup redhat.com', 'delta': '0:00:00.027997', 'end': '2026-08-20 11:31:10.389101', 'item': 'redhat.com', 'rc': 0, 'start': '2026-08-20 11:31:10.361104'}) => {
+    "msg": "DNS resolution for redhat.com: SUCCESS"
+}
+ok: [node2] => (item={'changed': True, 'cmd': 'nslookup google.com', 'delta': '0:00:00.028122', 'end': '2026-08-20 11:31:09.819114', 'item': 'google.com', 'rc': 0, 'start': '2026-08-20 11:31:09.791 -0000'}) => {
+    "msg": "DNS resolution for google.com: SUCCESS"
+}
+ok: [node2] => (item={'changed': True, 'cmd': 'nslookup github.com', 'delta': '0:00:00.029431', 'end': '2026-08-20 11:31:10.102918', 'item': 'github.com', 'rc': 0, 'start': '2026-08-20 11:31:10.073487'}) => {
+    "msg": "DNS resolution for github.com: SUCCESS"
+}
+ok: [node2] => (item={'changed': True, 'cmd': 'nslookup redhat.com', 'delta': '0:00:00.028009', 'end': '2026-08-20 11:31:10.388211', 'item': 'redhat.com', 'rc': 0, 'start': '2026-08-20 11:31:10.360202'}) => {
+    "msg": "DNS resolution for redhat.com: SUCCESS"
+}
+
+PLAY RECAP ********************************************************************
+node1                       : ok=11   changed=5    unreachable=0    failed=0
+node2                       : ok=11   changed=5    unreachable=0    failed=0
+
+--------------------------------------------------------------------------------
+Create a network validation playbook + run validation
+--------------------------------------------------------------------------------
+
+Command Executed
+student@ip-172-31-10-200:~/lab13-network-automation$ nano validate-network.yml
+
+Output
+
+Command Executed
+student@ip-172-31-10-200:~/lab13-network-automation$ mkdir -p reports
+student@ip-172-31-10-200:~/lab13-network-automation$ ansible-playbook -i inventory validate-network.yml
+
+Output
+PLAY [Validate Network Configuration] *****************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Check network interface status] *****************************************
+changed: [node1]
+changed: [node2]
+
+TASK [Display interface status] ***********************************************
+ok: [node1] => {
+    "device_status.stdout_lines": [
+        "DEVICE  TYPE      STATE      CONNECTION",
+        "eth0    ethernet  connected  primary-eth0",
+        "lo      loopback  unmanaged  --"
+    ]
+}
+ok: [node2] => {
+    "device_status.stdout_lines": [
+        "DEVICE  TYPE      STATE      CONNECTION",
+        "eth0    ethernet  connected  primary-eth0",
+        "lo      loopback  unmanaged  --"
+    ]
+}
+
+TASK [Check active connections] ***********************************************
+changed: [node1]
+changed: [node2]
+
+TASK [Display active connections] *********************************************
+ok: [node1] => {
+    "active_connections.stdout_lines": [
+        "NAME         UUID                                  TYPE      DEVICE",
+        "primary-eth0  7c1c2fd0-4d1f-4b3c-8f04-1d13a5d3b100  ethernet  eth0"
+    ]
+}
+ok: [node2] => {
+    "active_connections.stdout_lines": [
+        "NAME         UUID                                  TYPE      DEVICE",
+        "primary-eth0  6f4f2c11-0f28-47e1-a6e0-2f0a9d8ab101  ethernet  eth0"
+    ]
+}
+
+TASK [Test internet connectivity] *********************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Display internet connectivity status] ***********************************
+ok: [node1] => {
+    "msg": "Internet connectivity: AVAILABLE"
+}
+ok: [node2] => {
+    "msg": "Internet connectivity: AVAILABLE"
+}
+
+TASK [Generate network configuration report] **********************************
+changed: [node1]
+changed: [node2]
+
+TASK [Fetch network reports] **************************************************
+changed: [node1]
+changed: [node2]
+
+PLAY RECAP ********************************************************************
+node1                       : ok=10   changed=5    unreachable=0    failed=0
+node2                       : ok=10   changed=5    unreachable=0    failed=0
+
+--------------------------------------------------------------------------------
+Review fetched reports
+--------------------------------------------------------------------------------
+
+Command Executed
+student@ip-172-31-10-200:~/lab13-network-automation$ ls -la reports/
+
+Output
+total 16
+drwxr-xr-x 2 student student 4096 Aug 20 11:35 .
+drwxr-xr-x 4 student student 4096 Aug 20 11:34 ..
+-rw-r--r-- 1 student student 1541 Aug 20 11:35 node1_network_report.txt
+-rw-r--r-- 1 student student 1541 Aug 20 11:35 node2_network_report.txt
+
+Command Executed
+student@ip-172-31-10-200:~/lab13-network-automation$ cat reports/node1_network_report.txt
+
+Output
+=== Network Configuration Report ===
+Hostname: node1
+Date: Tue Aug 20 11:35:22 UTC 2026
+
+=== IP Configuration ===
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9001 qdisc mq state UP group default qlen 1000
+    link/ether 0a:3d:22:9c:10:01 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.1.100/24 brd 192.168.1.255 scope global noprefixroute eth0
+       valid_lft forever preferred_lft forever
+
+=== Routing Table ===
+default via 192.168.1.1 dev eth0 proto static metric 100
+10.0.0.0/8 via 192.168.1.1 dev eth0 proto static
+10.10.0.0/16 via 192.168.1.1 dev eth0 proto static metric 200
+172.16.0.0/16 via 192.168.1.1 dev eth0 proto static metric 100
+192.168.1.0/24 dev eth0 proto kernel scope link src 192.168.1.100
+
+=== DNS Configuration ===
+# Generated by Ansible - Lab 13
+# Search domains
+search example.com
+search lab.local
+search internal.net
+# DNS servers
+nameserver 8.8.8.8
+nameserver 8.8.4.4
+nameserver 1.1.1.1
+# DNS options
+options timeout:2
+options attempts:3
+options rotate
+
+================================================================================
+Troubleshooting Common Issues (commands + outputs)
+================================================================================
+
+--------------------------------------------------------------------------------
+Issue 1: NetworkManager Service Not Running
+--------------------------------------------------------------------------------
+
+Command Executed
+student@ip-172-31-10-200:~/lab13-network-automation$ ansible -i inventory all -m service -a "name=NetworkManager state=started enabled=yes" --become
+
+Output
+node1 | SUCCESS => {"changed": false, "enabled": true, "name": "NetworkManager", "state": "started"}
+node2 | SUCCESS => {"changed": false, "enabled": true, "name": "NetworkManager", "state": "started"}
+
+--------------------------------------------------------------------------------
+Issue 2: DNS Resolution Failures
+--------------------------------------------------------------------------------
+
+Command Executed
+student@ip-172-31-10-200:~/lab13-network-automation$ ansible -i inventory all -m shell -a "cat /etc/resolv.conf"
+
+Output
+node1 | CHANGED | rc=0 >>
+# Generated by Ansible - Lab 13
+# Search domains
+search example.com
+search lab.local
+search internal.net
+# DNS servers
+nameserver 8.8.8.8
+nameserver 8.8.4.4
+nameserver 1.1.1.1
+# DNS options
+options timeout:2
+options attempts:3
+options rotate
+
+node2 | CHANGED | rc=0 >>
+# Generated by Ansible - Lab 13
+# Search domains
+search example.com
+search lab.local
+search internal.net
+# DNS servers
+nameserver 8.8.8.8
+nameserver 8.8.4.4
+nameserver 1.1.1.1
+# DNS options
+options timeout:2
+options attempts:3
+options rotate
+
+Command Executed
+student@ip-172-31-10-200:~/lab13-network-automation$ ansible -i inventory all -m service -a "name=NetworkManager state=restarted" --become
+
+Output
+node1 | SUCCESS => {"changed": true, "name": "NetworkManager", "state": "started"}
+node2 | SUCCESS => {"changed": true, "name": "NetworkManager", "state": "started"}
+
+Command Executed
+student@ip-172-31-10-200:~/lab13-network-automation$ ansible -i inventory all -m shell -a "dig @8.8.8.8 google.com | head"
+
+Output
+node1 | FAILED | rc=127 >>
+/bin/sh: dig: command not found
+node2 | FAILED | rc=127 >>
+/bin/sh: dig: command not found
+
+Command Executed
+student@ip-172-31-10-200:~/lab13-network-automation$ ansible -i inventory all -m yum -a "name=bind-utils state=present" --become
+
+Output
+node1 | SUCCESS => {"changed": true, "msg": "Installed: bind-utils"}
+node2 | SUCCESS => {"changed": true, "msg": "Installed: bind-utils"}
+
+Command Executed
+student@ip-172-31-10-200:~/lab13-network-automation$ ansible -i inventory all -m shell -a "dig @8.8.8.8 google.com | head"
+
+Output
+node1 | CHANGED | rc=0 >>
+; <<>> DiG 9.11.4-P2-RedHat-9.11.4-26.P2.el7_9.16 <<>> @8.8.8.8 google.com
+; (1 server found)
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 18234
+
+node2 | CHANGED | rc=0 >>
+; <<>> DiG 9.11.4-P2-RedHat-9.11.4-26.P2.el7_9.16 <<>> @8.8.8.8 google.com
+; (1 server found)
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 21988
+
+--------------------------------------------------------------------------------
+Issue 3: Static Routes Not Persisting
+--------------------------------------------------------------------------------
+
+Command Executed
+student@ip-172-31-10-200:~/lab13-network-automation$ ansible -i inventory all -m shell -a "ls -la /etc/sysconfig/network-scripts/route-*"
+
+Output
+node1 | CHANGED | rc=0 >>
+-rw-r--r-- 1 root root 104 Aug 20 11:29 /etc/sysconfig/network-scripts/route-eth0
+
+node2 | CHANGED | rc=0 >>
+-rw-r--r-- 1 root root 104 Aug 20 11:29 /etc/sysconfig/network-scripts/route-eth0
+
+Command Executed
+student@ip-172-31-10-200:~/lab13-network-automation$ ansible -i inventory all -m shell -a "nmcli connection show"
+
+Output
+node1 | CHANGED | rc=0 >>
+NAME                 UUID                                  TYPE      DEVICE
+primary-eth0          7c1c2fd0-4d1f-4b3c-8f04-1d13a5d3b100  ethernet  eth0
+System eth0           1b5f8b31-3a7a-4c15-8f7d-4b2f2e4d1f10  ethernet  --
+secondary-net         22c3a0bb-7f4b-4b92-8af2-8f2f8b5a3a10  ethernet  --
+
+node2 | CHANGED | rc=0 >>
+NAME                 UUID                                  TYPE      DEVICE
+primary-eth0          6f4f2c11-0f28-47e1-a6e0-2f0a9d8ab101  ethernet  eth0
+System eth0           4a2c30ef-0b0a-4c8c-9c11-b76e50f31f11  ethernet  --
+secondary-net         9c82d10e-8a7a-4f36-a0ad-9cf3a1c7c011  ethernet  --
+
+================================================================================
+Advanced Configuration Examples (files created)
+================================================================================
+
+Command Executed
+student@ip-172-31-10-200:~/lab13-network-automation$ nano configure-vlan.yml
+
+Output
+
+Command Executed
+student@ip-172-31-10-200:~/lab13-network-automation$ nano configure-bonding.yml
+
+Output
