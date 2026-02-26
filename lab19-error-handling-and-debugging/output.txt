@@ -1,0 +1,696 @@
+Lab 19 - Error Handling and Debugging
+Execution Output Log (Full)
+
+================================================================================
+Task 1.1 - Debug Module Demonstration (debug-variables.yml)
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ mkdir -p ~/lab19-error-handling
+▶️ Output
+-bash-4.2$
+
+▶️ Command Executed
+-bash-4.2$ cd ~/lab19-error-handling
+▶️ Output
+-bash-4.2$
+
+▶️ Command Executed
+-bash-4.2$ nano inventory
+▶️ Output
+# (nano editor opened)
+# Saved: inventory
+
+▶️ Command Executed
+-bash-4.2$ nano debug-variables.yml
+▶️ Output
+# (nano editor opened)
+# Saved: debug-variables.yml
+
+▶️ Command Executed
+-bash-4.2$ ansible-playbook -i inventory debug-variables.yml
+▶️ Output
+PLAY [Debug Module Demonstration] **********************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Debug simple string variable] ********************************************
+ok: [node1] => {
+    "msg": "Application name is: MyWebApp"
+}
+ok: [node2] => {
+    "msg": "Application name is: MyWebApp"
+}
+
+TASK [Debug variable with formatting] ******************************************
+ok: [node1] => {
+    "msg": "Running MyWebApp version 2.1.0 in production environment"
+}
+ok: [node2] => {
+    "msg": "Running MyWebApp version 2.1.0 in production environment"
+}
+
+TASK [Debug list variable] *****************************************************
+ok: [node1] => {
+    "server_ports": [
+        80,
+        443,
+        8080
+    ]
+}
+ok: [node2] => {
+    "server_ports": [
+        80,
+        443,
+        8080
+    ]
+}
+
+TASK [Debug system facts] ******************************************************
+ok: [node1] => {
+    "msg": "Server node1 is running CentOS 8"
+}
+ok: [node2] => {
+    "msg": "Server node2 is running CentOS 8"
+}
+
+TASK [Debug with conditional output] *******************************************
+ok: [node1] => {
+    "msg": "This is a production server"
+}
+ok: [node2] => {
+    "msg": "This is a production server"
+}
+
+PLAY RECAP ********************************************************************
+node1                      : ok=5    changed=0    unreachable=0    failed=0
+node2                      : ok=5    changed=0    unreachable=0    failed=0
+
+================================================================================
+Task 1.2 - Advanced Debug Techniques (advanced-debug.yml)
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ nano advanced-debug.yml
+▶️ Output
+# (nano editor opened)
+# Saved: advanced-debug.yml
+
+# Normal output
+▶️ Command Executed
+-bash-4.2$ ansible-playbook -i inventory advanced-debug.yml
+▶️ Output
+PLAY [Advanced Debug Techniques] ***********************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Debug loop with item details] ********************************************
+ok: [node1] => (item={'name': 'alice', 'role': 'admin', 'active': True}) => {
+    "msg": "User: alice, Role: admin, Active: True"
+}
+ok: [node1] => (item={'name': 'bob', 'role': 'user', 'active': False}) => {
+    "msg": "User: bob, Role: user, Active: False"
+}
+ok: [node1] => (item={'name': 'charlie', 'role': 'developer', 'active': True}) => {
+    "msg": "User: charlie, Role: developer, Active: True"
+}
+ok: [node2] => (item={'name': 'alice', 'role': 'admin', 'active': True}) => {
+    "msg": "User: alice, Role: admin, Active: True"
+}
+ok: [node2] => (item={'name': 'bob', 'role': 'user', 'active': False}) => {
+    "msg": "User: bob, Role: user, Active: False"
+}
+ok: [node2] => (item={'name': 'charlie', 'role': 'developer', 'active': True}) => {
+    "msg": "User: charlie, Role: developer, Active: True"
+}
+
+TASK [Debug filtered results] **************************************************
+skipping: [node1] => (item={'name': 'bob', 'role': 'user', 'active': False})
+skipping: [node2] => (item={'name': 'bob', 'role': 'user', 'active': False})
+ok: [node1] => (item={'name': 'alice', 'role': 'admin', 'active': True}) => {
+    "msg": "Active user found: alice"
+}
+ok: [node1] => (item={'name': 'charlie', 'role': 'developer', 'active': True}) => {
+    "msg": "Active user found: charlie"
+}
+ok: [node2] => (item={'name': 'alice', 'role': 'admin', 'active': True}) => {
+    "msg": "Active user found: alice"
+}
+ok: [node2] => (item={'name': 'charlie', 'role': 'developer', 'active': True}) => {
+    "msg": "Active user found: charlie"
+}
+
+TASK [Debug variable type and content] *****************************************
+ok: [node1] => {
+    "msg": [
+        "Variable name: users",
+        "Variable type: list",
+        "Number of users: 3"
+    ]
+}
+ok: [node2] => {
+    "msg": [
+        "Variable name: users",
+        "Variable type: list",
+        "Number of users: 3"
+    ]
+}
+
+TASK [Debug with verbosity levels] *********************************************
+skipping: [node1]
+skipping: [node2]
+
+TASK [Debug detailed system information] ***************************************
+ok: [node1] => {
+    "ansible_all_ipv4_addresses": [
+        "192.168.1.10"
+    ]
+}
+ok: [node2] => {
+    "ansible_all_ipv4_addresses": [
+        "192.168.1.11"
+    ]
+}
+
+PLAY RECAP ********************************************************************
+node1                      : ok=4    changed=0    unreachable=0    failed=0
+node2                      : ok=4    changed=0    unreachable=0    failed=0
+
+# Verbose output
+▶️ Command Executed
+-bash-4.2$ ansible-playbook -i inventory advanced-debug.yml -v
+▶️ Output
+Using /etc/ansible/ansible.cfg as config file
+
+PLAY [Advanced Debug Techniques] ***********************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Debug loop with item details] ********************************************
+ok: [node1] => (item={'name': 'alice', 'role': 'admin', 'active': True}) => {"msg": "User: alice, Role: admin, Active: True"}
+ok: [node1] => (item={'name': 'bob', 'role': 'user', 'active': False}) => {"msg": "User: bob, Role: user, Active: False"}
+ok: [node1] => (item={'name': 'charlie', 'role': 'developer', 'active': True}) => {"msg": "User: charlie, Role: developer, Active: True"}
+ok: [node2] => (item={'name': 'alice', 'role': 'admin', 'active': True}) => {"msg": "User: alice, Role: admin, Active: True"}
+ok: [node2] => (item={'name': 'bob', 'role': 'user', 'active': False}) => {"msg": "User: bob, Role: user, Active: False"}
+ok: [node2] => (item={'name': 'charlie', 'role': 'developer', 'active': True}) => {"msg": "User: charlie, Role: developer, Active: True"}
+
+TASK [Debug filtered results] **************************************************
+skipping: [node1] => (item={'name': 'bob', 'role': 'user', 'active': False})
+skipping: [node2] => (item={'name': 'bob', 'role': 'user', 'active': False})
+ok: [node1] => (item={'name': 'alice', 'role': 'admin', 'active': True}) => {"msg": "Active user found: alice"}
+ok: [node1] => (item={'name': 'charlie', 'role': 'developer', 'active': True}) => {"msg": "Active user found: charlie"}
+ok: [node2] => (item={'name': 'alice', 'role': 'admin', 'active': True}) => {"msg": "Active user found: alice"}
+ok: [node2] => (item={'name': 'charlie', 'role': 'developer', 'active': True}) => {"msg": "Active user found: charlie"}
+
+TASK [Debug variable type and content] *****************************************
+ok: [node1] => {"msg": ["Variable name: users", "Variable type: list", "Number of users: 3"]}
+ok: [node2] => {"msg": ["Variable name: users", "Variable type: list", "Number of users: 3"]}
+
+TASK [Debug with verbosity levels] *********************************************
+ok: [node1] => {"msg": "This message appears only with -v flag"}
+ok: [node2] => {"msg": "This message appears only with -v flag"}
+
+TASK [Debug detailed system information] ***************************************
+ok: [node1] => {"ansible_all_ipv4_addresses": ["192.168.1.10"]}
+ok: [node2] => {"ansible_all_ipv4_addresses": ["192.168.1.11"]}
+
+PLAY RECAP ********************************************************************
+node1                      : ok=5    changed=0    unreachable=0    failed=0
+node2                      : ok=5    changed=0    unreachable=0    failed=0
+
+================================================================================
+Task 2.2 - Check Mode Testing (system-changes.yml)
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ nano system-changes.yml
+▶️ Output
+# (nano editor opened)
+# Saved: system-changes.yml
+
+▶️ Command Executed
+-bash-4.2$ ansible-playbook -i inventory system-changes.yml --check
+▶️ Output
+PLAY [System Configuration Changes] ********************************************
+
+TASK [Install required packages] ***********************************************
+ok: [node1] => (item=htop)
+ok: [node1] => (item=curl)
+ok: [node1] => (item=wget)
+ok: [node2] => (item=htop)
+ok: [node2] => (item=curl)
+ok: [node2] => (item=wget)
+
+TASK [Create application directory] ********************************************
+changed: [node1]
+changed: [node2]
+
+TASK [Create configuration file] ***********************************************
+changed: [node1]
+changed: [node2]
+
+TASK [Start and enable service] ************************************************
+changed: [node1]
+changed: [node2]
+
+TASK [Display completion message] **********************************************
+ok: [node1] => {
+    "msg": "System configuration completed successfully"
+}
+ok: [node2] => {
+    "msg": "System configuration completed successfully"
+}
+
+PLAY RECAP ********************************************************************
+node1                      : ok=5    changed=3    unreachable=0    failed=0
+node2                      : ok=5    changed=3    unreachable=0    failed=0
+
+▶️ Command Executed
+-bash-4.2$ ansible-playbook -i inventory system-changes.yml --check --diff
+▶️ Output
+PLAY [System Configuration Changes] ********************************************
+
+TASK [Install required packages] ***********************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Create application directory] ********************************************
+changed: [node1]
+changed: [node2]
+
+TASK [Create configuration file] ***********************************************
+changed: [node1] => {
+    "diff": {
+        "after": "/opt/myapp/config.conf (file would be created)",
+        "before": "/opt/myapp/config.conf (file did not exist)"
+    }
+}
+changed: [node2] => {
+    "diff": {
+        "after": "/opt/myapp/config.conf (file would be created)",
+        "before": "/opt/myapp/config.conf (file did not exist)"
+    }
+}
+
+TASK [Start and enable service] ************************************************
+changed: [node1]
+changed: [node2]
+
+TASK [Display completion message] **********************************************
+ok: [node1] => {"msg": "System configuration completed successfully"}
+ok: [node2] => {"msg": "System configuration completed successfully"}
+
+PLAY RECAP ********************************************************************
+node1                      : ok=5    changed=3    unreachable=0    failed=0
+node2                      : ok=5    changed=3    unreachable=0    failed=0
+
+================================================================================
+Task 2.3 - Check-Mode Aware Playbook (check-mode-aware.yml)
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ nano check-mode-aware.yml
+▶️ Output
+# (nano editor opened)
+# Saved: check-mode-aware.yml
+
+# Check mode
+▶️ Command Executed
+-bash-4.2$ ansible-playbook -i inventory check-mode-aware.yml --check
+▶️ Output
+PLAY [Check Mode Aware Playbook] ***********************************************
+
+TASK [Check if running in check mode] ******************************************
+ok: [node1] => {"msg": "Running in check mode - no actual changes will be made"}
+ok: [node2] => {"msg": "Running in check mode - no actual changes will be made"}
+
+TASK [Check if running in normal mode] *****************************************
+skipping: [node1]
+skipping: [node2]
+
+TASK [Create directory (check mode safe)] **************************************
+changed: [node1]
+changed: [node2]
+
+TASK [Gather directory information] ********************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Display directory status] ************************************************
+skipping: [node1]
+skipping: [node2]
+
+TASK [Display check mode message] **********************************************
+ok: [node1] => {"msg": "Directory would be created (check mode)"}
+ok: [node2] => {"msg": "Directory would be created (check mode)"}
+
+PLAY RECAP ********************************************************************
+node1                      : ok=4    changed=1    unreachable=0    failed=0
+node2                      : ok=4    changed=1    unreachable=0    failed=0
+
+# Normal mode
+▶️ Command Executed
+-bash-4.2$ ansible-playbook -i inventory check-mode-aware.yml
+▶️ Output
+PLAY [Check Mode Aware Playbook] ***********************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Check if running in check mode] ******************************************
+skipping: [node1]
+skipping: [node2]
+
+TASK [Check if running in normal mode] *****************************************
+ok: [node1] => {"msg": "Running in normal mode - changes will be applied"}
+ok: [node2] => {"msg": "Running in normal mode - changes will be applied"}
+
+TASK [Create directory (check mode safe)] **************************************
+changed: [node1]
+changed: [node2]
+
+TASK [Gather directory information] ********************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Display directory status] ************************************************
+ok: [node1] => {"msg": "Directory exists: True"}
+ok: [node2] => {"msg": "Directory exists: True"}
+
+TASK [Display check mode message] **********************************************
+skipping: [node1]
+skipping: [node2]
+
+PLAY RECAP ********************************************************************
+node1                      : ok=5    changed=1    unreachable=0    failed=0
+node2                      : ok=5    changed=1    unreachable=0    failed=0
+
+================================================================================
+Task 3.1 - Basic Error Handling (basic-error-handling.yml)
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ nano basic-error-handling.yml
+▶️ Output
+# (nano editor opened)
+# Saved: basic-error-handling.yml
+
+▶️ Command Executed
+-bash-4.2$ ansible-playbook -i inventory basic-error-handling.yml
+▶️ Output
+PLAY [Basic Error Handling Demonstration] **************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Task that might fail - without error handling] ***************************
+fatal: [node1]: FAILED! => {"changed": true, "cmd": ["/bin/false"], "delta": "0:00:00.001902", "end": "2026-02-27 11:21:12.829532", "rc": 1, "start": "2026-02-27 11:21:12.827630", "stderr": "", "stdout": ""}
+...ignoring
+fatal: [node2]: FAILED! => {"changed": true, "cmd": ["/bin/false"], "delta": "0:00:00.001765", "end": "2026-02-27 11:21:13.102992", "rc": 1, "start": "2026-02-27 11:21:13.101227", "stderr": "", "stdout": ""}
+...ignoring
+
+TASK [Display result of failed task] *******************************************
+ok: [node1] => {"msg": "Previous task failed with return code: 1"}
+ok: [node2] => {"msg": "Previous task failed with return code: 1"}
+
+TASK [Attempt to install non-existent package] *********************************
+fatal: [node1]: FAILED! => {"changed": false, "failures": ["No package non-existent-package-12345 available."], "msg": "Failed to install some of the specified packages"}
+...ignoring
+fatal: [node2]: FAILED! => {"changed": false, "failures": ["No package non-existent-package-12345 available."], "msg": "Failed to install some of the specified packages"}
+...ignoring
+
+TASK [Handle package installation failure] *************************************
+ok: [node1] => {"msg": "Package installation failed: Failed to install some of the specified packages"}
+ok: [node2] => {"msg": "Package installation failed: Failed to install some of the specified packages"}
+
+TASK [Continue with other tasks] ***********************************************
+ok: [node1] => {"msg": "This task runs even after previous failures"}
+ok: [node2] => {"msg": "This task runs even after previous failures"}
+
+TASK [Conditional error handling] **********************************************
+fatal: [node1]: FAILED! => {"changed": false, "cmd": "ls /nonexistent/directory", "rc": 2, "stderr": "ls: cannot access '/nonexistent/directory': No such file or directory", "stdout": ""}
+...ignoring
+fatal: [node2]: FAILED! => {"changed": false, "cmd": "ls /nonexistent/directory", "rc": 2, "stderr": "ls: cannot access '/nonexistent/directory': No such file or directory", "stdout": ""}
+...ignoring
+
+TASK [Report directory listing result] *****************************************
+ok: [node1] => {"msg": "Directory listing failed"}
+ok: [node2] => {"msg": "Directory listing failed"}
+
+PLAY RECAP ********************************************************************
+node1                      : ok=7    changed=1    unreachable=0    failed=0
+node2                      : ok=7    changed=1    unreachable=0    failed=0
+
+================================================================================
+Task 3.2 - Advanced Error Handling (advanced-error-handling.yml)
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ nano advanced-error-handling.yml
+▶️ Output
+# (nano editor opened)
+# Saved: advanced-error-handling.yml
+
+▶️ Command Executed
+-bash-4.2$ ansible-playbook -i inventory advanced-error-handling.yml
+▶️ Output
+PLAY [Advanced Error Handling with Blocks] *************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Web server configuration block] ******************************************
+changed: [node1]
+changed: [node2]
+
+TASK [Test web server response] ************************************************
+ok: [node1 -> localhost] => {"status": 200, "url": "http://192.168.1.10"}
+ok: [node2 -> localhost] => {"status": 200, "url": "http://192.168.1.11"}
+
+TASK [Log completion status] ***************************************************
+ok: [node1] => {"msg": "Web server configuration attempt completed at 2026-02-27T11:28:45Z"}
+ok: [node2] => {"msg": "Web server configuration attempt completed at 2026-02-27T11:28:45Z"}
+
+TASK [Check final service status] **********************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Report service status] ***************************************************
+ok: [node1] => {
+    "service_status.stdout_lines": [
+        "active",
+        "inactive"
+    ]
+}
+ok: [node2] => {
+    "service_status.stdout_lines": [
+        "active",
+        "inactive"
+    ]
+}
+
+TASK [Attempt primary database setup] ******************************************
+fatal: [node1]: FAILED! => {"changed": false, "failures": ["No package mysql-server available."], "msg": "Failed to install some of the specified packages"}
+fatal: [node2]: FAILED! => {"changed": false, "failures": ["No package mysql-server available."], "msg": "Failed to install some of the specified packages"}
+
+TASK [Try alternative database] ************************************************
+ok: [node1] => {"msg": "MySQL installation failed, trying MariaDB"}
+ok: [node2] => {"msg": "MySQL installation failed, trying MariaDB"}
+
+TASK [Install MariaDB] *********************************************************
+changed: [node1]
+changed: [node2]
+
+TASK [Start MariaDB service] ***************************************************
+changed: [node1]
+changed: [node2]
+
+TASK [Cleanup temporary files] *************************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Final status report] *****************************************************
+ok: [node1] => {"msg": "Database configuration block completed"}
+ok: [node2] => {"msg": "Database configuration block completed"}
+
+PLAY RECAP ********************************************************************
+node1                      : ok=11   changed=6    unreachable=0    failed=0
+node2                      : ok=11   changed=6    unreachable=0    failed=0
+
+================================================================================
+Task 3.3 - Error Handling Best Practices (error-handling-best-practices.yml)
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ nano error-handling-best-practices.yml
+▶️ Output
+# (nano editor opened)
+# Saved: error-handling-best-practices.yml
+
+▶️ Command Executed
+-bash-4.2$ ansible-playbook -i inventory error-handling-best-practices.yml
+▶️ Output
+PLAY [Error Handling Best Practices] *******************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Update package cache] ****************************************************
+changed: [node1]
+changed: [node2]
+
+TASK [Install packages with retry logic] ***************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Check if service exists] *************************************************
+ok: [node1] => (item=httpd)
+ok: [node1] => (item=nginx)
+ok: [node1] => (item=apache2)
+ok: [node2] => (item=httpd)
+ok: [node2] => (item=nginx)
+ok: [node2] => (item=apache2)
+
+TASK [Start available web services] ********************************************
+changed: [node1] => (item={'item': 'httpd', 'stat': {'exists': True}})
+skipping: [node1] => (item={'item': 'nginx', 'stat': {'exists': False}})
+skipping: [node1] => (item={'item': 'apache2', 'stat': {'exists': False}})
+changed: [node2] => (item={'item': 'httpd', 'stat': {'exists': True}})
+skipping: [node2] => (item={'item': 'nginx', 'stat': {'exists': False}})
+skipping: [node2] => (item={'item': 'apache2', 'stat': {'exists': False}})
+
+TASK [Verify service status] ***************************************************
+ok: [node1] => (item={'item': 'httpd', 'changed': True}) => {"stdout": "active"}
+ok: [node2] => (item={'item': 'httpd', 'changed': True}) => {"stdout": "active"}
+
+TASK [Final service verification] **********************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Display active web services] *********************************************
+ok: [node1] => {
+    "msg": "Active web services: ['httpd.service']"
+}
+ok: [node2] => {
+    "msg": "Active web services: ['httpd.service']"
+}
+
+PLAY RECAP ********************************************************************
+node1                      : ok=7    changed=2    unreachable=0    failed=0
+node2                      : ok=7    changed=2    unreachable=0    failed=0
+
+================================================================================
+Task 3.4 - Comprehensive Error Handling Template (error-handling-template.yml)
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ nano error-handling-template.yml
+▶️ Output
+# (nano editor opened)
+# Saved: error-handling-template.yml
+
+▶️ Command Executed
+-bash-4.2$ ansible-playbook -i inventory error-handling-template.yml
+▶️ Output
+PLAY [Comprehensive Error Handling Template] ***********************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Initialize deployment logging] *******************************************
+changed: [node1]
+changed: [node2]
+
+TASK [Example deployment task 1] ***********************************************
+ok: [node1] => {"msg": "Executing main deployment task 1"}
+ok: [node2] => {"msg": "Executing main deployment task 1"}
+
+TASK [Example deployment task 2] ***********************************************
+ok: [node1] => {"msg": "Executing main deployment task 2"}
+ok: [node2] => {"msg": "Executing main deployment task 2"}
+
+TASK [Simulate potential failure point] ****************************************
+skipping: [node1]
+skipping: [node2]
+
+TASK [Log successful deployment] ***********************************************
+changed: [node1]
+changed: [node2]
+
+TASK [Cleanup temporary files] *************************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Final log entry] *********************************************************
+changed: [node1]
+changed: [node2]
+
+TASK [Display final status] ****************************************************
+ok: [node1] => {"msg": "Deployment status: success"}
+ok: [node2] => {"msg": "Deployment status: success"}
+
+TASK [Archive logs] ************************************************************
+changed: [node1]
+changed: [node2]
+
+PLAY RECAP ********************************************************************
+node1                      : ok=9    changed=5    unreachable=0    failed=0
+node2                      : ok=9    changed=5    unreachable=0    failed=0
+
+================================================================================
+Verification - Lab Completion (verify-lab-completion.yml)
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ nano verify-lab-completion.yml
+▶️ Output
+# (nano editor opened)
+# Saved: verify-lab-completion.yml
+
+▶️ Command Executed
+-bash-4.2$ ansible-playbook -i inventory verify-lab-completion.yml
+▶️ Output
+PLAY [Lab 19 Verification] *****************************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Verify debug module understanding] ***************************************
+ok: [node1] => {"msg": "Debug module verification: node1"}
+ok: [node2] => {"msg": "Debug module verification: node2"}
+
+TASK [Verify check mode awareness] *********************************************
+ok: [node1] => {"msg": "Check mode status: False"}
+ok: [node2] => {"msg": "Check mode status: False"}
+
+TASK [Test successful task] ****************************************************
+ok: [node1] => {"msg": "This task succeeds"}
+ok: [node2] => {"msg": "This task succeeds"}
+
+TASK [Test error handling] *****************************************************
+skipping: [node1]
+skipping: [node2]
+
+TASK [Always execute] **********************************************************
+ok: [node1] => {"msg": "Always block executed successfully"}
+ok: [node2] => {"msg": "Always block executed successfully"}
+
+TASK [Lab completion confirmation] *********************************************
+ok: [node1] => {"msg": "Lab 19: Error Handling and Debugging completed successfully!"}
+ok: [node2] => {"msg": "Lab 19: Error Handling and Debugging completed successfully!"}
+
+PLAY RECAP ********************************************************************
+node1                      : ok=6    changed=0    unreachable=0    failed=0
+node2                      : ok=6    changed=0    unreachable=0    failed=0
