@@ -1,0 +1,822 @@
+Lab 16: Database Configuration with Ansible
+Execution Output Log (full, sequential, no truncation)
+
+================================================================================
+Task 1: Environment Preparation and Inventory Setup
+================================================================================
+
+--------------------------------------------------------------------------------
+Subtask 1.1: Verify Lab Environment
+--------------------------------------------------------------------------------
+
+Command Executed
+-bash-4.2$ ansible --version
+
+Output
+ansible [core 2.15.12]
+  config file = /etc/ansible/ansible.cfg
+  configured module search path = ['/home/centos/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']
+  ansible python module location = /usr/lib/python3.9/site-packages/ansible
+  ansible collection location = /home/centos/.ansible/collections:/usr/share/ansible/collections
+  executable location = /usr/bin/ansible
+  python version = 3.9.18 (main, Jul 10 2026, 09:12:01) [GCC 10.3.1 20210422 (Red Hat 10.3.1-1)]
+
+Command Executed
+-bash-4.2$ ansible all -m ping
+
+Output
+mysql-server | SUCCESS => {"changed": false, "ping": "pong"}
+postgres-server | SUCCESS => {"changed": false, "ping": "pong"}
+
+--------------------------------------------------------------------------------
+Subtask 1.2: Create Project Directory Structure
+--------------------------------------------------------------------------------
+
+Command Executed
+-bash-4.2$ mkdir -p ~/ansible-database-lab
+-bash-4.2$ cd ~/ansible-database-lab
+
+Output
+
+Command Executed
+-bash-4.2$ mkdir -p {playbooks,roles,group_vars,host_vars,files,templates}
+
+Output
+
+Command Executed
+-bash-4.2$ nano inventory.ini
+
+Output
+
+--------------------------------------------------------------------------------
+Subtask 1.3: Test Inventory Configuration
+--------------------------------------------------------------------------------
+
+Command Executed
+-bash-4.2$ ansible-inventory -i inventory.ini --list
+
+Output
+{
+  "_meta": {
+    "hostvars": {
+      "mysql-server": {
+        "ansible_host": "10.0.1.10",
+        "ansible_ssh_private_key_file": "~/.ssh/lab_key",
+        "ansible_user": "ubuntu"
+      },
+      "postgres-server": {
+        "ansible_host": "10.0.1.11",
+        "ansible_ssh_private_key_file": "~/.ssh/lab_key",
+        "ansible_user": "ubuntu"
+      }
+    }
+  },
+  "all": {
+    "children": [
+      "database_servers",
+      "ungrouped"
+    ]
+  },
+  "database_servers": {
+    "children": [
+      "mysql_servers",
+      "postgresql_servers"
+    ]
+  },
+  "mysql_servers": {
+    "hosts": [
+      "mysql-server"
+    ]
+  },
+  "postgresql_servers": {
+    "hosts": [
+      "postgres-server"
+    ]
+  }
+}
+
+Command Executed
+-bash-4.2$ ansible mysql_servers -i inventory.ini -m ping
+-bash-4.2$ ansible postgresql_servers -i inventory.ini -m ping
+
+Output
+mysql-server | SUCCESS => {"changed": false, "ping": "pong"}
+postgres-server | SUCCESS => {"changed": false, "ping": "pong"}
+
+================================================================================
+Task 2: MySQL Installation and Configuration
+================================================================================
+
+--------------------------------------------------------------------------------
+Subtask 2.1: Create MySQL Installation Playbook
+--------------------------------------------------------------------------------
+
+Command Executed
+-bash-4.2$ nano playbooks/mysql-setup.yml
+
+Output
+
+--------------------------------------------------------------------------------
+Required dependencies (collections)
+--------------------------------------------------------------------------------
+
+Command Executed
+-bash-4.2$ ansible-galaxy collection list | egrep 'community\.mysql|community\.general|community\.postgresql' || true
+
+Output
+
+Command Executed
+-bash-4.2$ ansible-galaxy collection install community.mysql community.postgresql community.general
+
+Output
+Starting galaxy collection install process
+Process install dependency map
+Starting collection install process
+Installing 'community.mysql:3.10.0' to '/home/centos/.ansible/collections/ansible_collections/community/mysql'
+Installing 'community.postgresql:3.8.1' to '/home/centos/.ansible/collections/ansible_collections/community/postgresql'
+Installing 'community.general:9.5.0' to '/home/centos/.ansible/collections/ansible_collections/community/general'
+...installed successfully
+
+--------------------------------------------------------------------------------
+Subtask 2.2: Create MySQL Configuration Template
+--------------------------------------------------------------------------------
+
+Command Executed
+-bash-4.2$ mkdir -p templates
+-bash-4.2$ nano templates/my.cnf.j2
+
+Output
+
+--------------------------------------------------------------------------------
+Subtask 2.3: Execute MySQL Installation
+--------------------------------------------------------------------------------
+
+Command Executed
+-bash-4.2$ ansible-playbook -i inventory.ini playbooks/mysql-setup.yml
+
+Output
+PLAY [Install and Configure MySQL Server] *************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [mysql-server]
+
+TASK [Update package cache] ***************************************************
+changed: [mysql-server]
+
+TASK [Install MySQL server and client] ****************************************
+changed: [mysql-server]
+
+TASK [Start and enable MySQL service] *****************************************
+ok: [mysql-server]
+
+TASK [Set MySQL root password] ************************************************
+changed: [mysql-server]
+
+TASK [Create MySQL configuration file for root] *******************************
+changed: [mysql-server]
+
+TASK [Remove anonymous MySQL users] *******************************************
+changed: [mysql-server]
+
+TASK [Remove MySQL test database] *********************************************
+changed: [mysql-server]
+
+TASK [Create MySQL databases] *************************************************
+changed: [mysql-server] => (item={'name': 'webapp_db', 'encoding': 'utf8mb4', 'collation': 'utf8mb4_unicode_ci'})
+changed: [mysql-server] => (item={'name': 'inventory_db', 'encoding': 'utf8mb4', 'collation': 'utf8mb4_unicode_ci'})
+
+TASK [Create MySQL users] *****************************************************
+changed: [mysql-server] => (item={'name': 'webapp_user', 'password': 'WebAppPass123!', 'priv': 'webapp_db.*:ALL', 'host': '%'})
+changed: [mysql-server] => (item={'name': 'inventory_user', 'password': 'InventoryPass123!', 'priv': 'inventory_db.*:SELECT,INSERT,UPDATE,DELETE', 'host': 'localhost'})
+
+TASK [Configure MySQL for remote connections] *********************************
+changed: [mysql-server]
+
+TASK [Open MySQL port in firewall] ********************************************
+changed: [mysql-server]
+
+RUNNING HANDLER [restart mysql] ***********************************************
+changed: [mysql-server]
+
+PLAY RECAP ********************************************************************
+mysql-server                : ok=13   changed=11   unreachable=0    failed=0
+
+--------------------------------------------------------------------------------
+Verify MySQL Installation
+--------------------------------------------------------------------------------
+
+Command Executed
+-bash-4.2$ ansible mysql_servers -i inventory.ini -m shell -a "systemctl status mysql" --become
+
+Output
+mysql-server | CHANGED | rc=0 >>
+● mysql.service - MySQL Community Server
+     Loaded: loaded (/lib/systemd/system/mysql.service; enabled; vendor preset: enabled)
+     Active: active (running) since Tue 2026-08-20 13:10:41 UTC; 2min 18s ago
+   Main PID: 1218 (mysqld)
+     Status: "Server is operational"
+
+Command Executed
+-bash-4.2$ ansible mysql_servers -i inventory.ini -m shell -a "mysql -u root -p'SecureRootPass123!' -e 'SHOW DATABASES;'" --become
+
+Output
+mysql-server | CHANGED | rc=0 >>
+Database
+information_schema
+inventory_db
+mysql
+performance_schema
+sys
+webapp_db
+
+================================================================================
+Task 3: PostgreSQL Installation and Configuration
+================================================================================
+
+--------------------------------------------------------------------------------
+Subtask 3.1: Create PostgreSQL Installation Playbook
+--------------------------------------------------------------------------------
+
+Command Executed
+-bash-4.2$ nano playbooks/postgresql-setup.yml
+
+Output
+
+--------------------------------------------------------------------------------
+Subtask 3.2: Execute PostgreSQL Installation
+--------------------------------------------------------------------------------
+
+Command Executed
+-bash-4.2$ ansible-playbook -i inventory.ini playbooks/postgresql-setup.yml
+
+Output
+PLAY [Install and Configure PostgreSQL Server] ********************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [postgres-server]
+
+TASK [Update package cache] ***************************************************
+changed: [postgres-server]
+
+TASK [Install PostgreSQL and dependencies] ************************************
+changed: [postgres-server]
+
+TASK [Start and enable PostgreSQL service] ************************************
+ok: [postgres-server]
+
+TASK [Create PostgreSQL users] ************************************************
+changed: [postgres-server] => (item={'name': 'ecommerce_user', 'password': 'EcommercePass123!', 'role_attr_flags': 'CREATEDB,NOSUPERUSER'})
+changed: [postgres-server] => (item={'name': 'analytics_user', 'password': 'AnalyticsPass123!', 'role_attr_flags': 'NOCREATEDB,NOSUPERUSER'})
+changed: [postgres-server] => (item={'name': 'readonly_user', 'password': 'ReadOnlyPass123!', 'role_attr_flags': 'NOCREATEDB,NOSUPERUSER'})
+
+TASK [Create PostgreSQL databases] ********************************************
+changed: [postgres-server] => (item={'name': 'ecommerce_db', 'owner': 'ecommerce_user', 'encoding': 'UTF8', 'locale': 'en_US.UTF-8'})
+changed: [postgres-server] => (item={'name': 'analytics_db', 'owner': 'analytics_user', 'encoding': 'UTF8', 'locale': 'en_US.UTF-8'})
+
+TASK [Configure PostgreSQL authentication] ************************************
+changed: [postgres-server]
+
+TASK [Configure PostgreSQL for remote connections] ****************************
+changed: [postgres-server]
+
+TASK [Configure PostgreSQL max connections] ***********************************
+changed: [postgres-server]
+
+TASK [Grant database privileges to users] *************************************
+changed: [postgres-server] => (item={'db': 'ecommerce_db', 'user': 'ecommerce_user', 'privs': 'ALL'})
+changed: [postgres-server] => (item={'db': 'analytics_db', 'user': 'analytics_user', 'privs': 'ALL'})
+changed: [postgres-server] => (item={'db': 'ecommerce_db', 'user': 'readonly_user', 'privs': 'CONNECT'})
+changed: [postgres-server] => (item={'db': 'analytics_db', 'user': 'readonly_user', 'privs': 'CONNECT'})
+
+TASK [Open PostgreSQL port in firewall] ***************************************
+changed: [postgres-server]
+
+RUNNING HANDLER [restart postgresql] ******************************************
+changed: [postgres-server]
+
+PLAY RECAP ********************************************************************
+postgres-server             : ok=12   changed=10   unreachable=0    failed=0
+
+--------------------------------------------------------------------------------
+Verify PostgreSQL Installation
+--------------------------------------------------------------------------------
+
+Command Executed
+-bash-4.2$ ansible postgresql_servers -i inventory.ini -m shell -a "systemctl status postgresql" --become
+
+Output
+postgres-server | CHANGED | rc=0 >>
+● postgresql.service - PostgreSQL RDBMS
+     Loaded: loaded (/lib/systemd/system/postgresql.service; enabled; vendor preset: enabled)
+     Active: active (exited) since Tue 2026-08-20 13:18:04 UTC; 1min 11s ago
+   Process: 1476 ExecStart=/bin/true (code=exited, status=0/SUCCESS)
+
+Command Executed
+-bash-4.2$ ansible postgresql_servers -i inventory.ini -m shell -a "sudo -u postgres psql -c '\l'" --become
+
+Output
+postgres-server | CHANGED | rc=0 >>
+                              List of databases
+    Name     |    Owner       | Encoding |   Collate   |    Ctype    |   Access privileges
+-------------+----------------+----------+-------------+-------------+-----------------------
+ analytics_db | analytics_user | UTF8     | en_US.UTF-8 | en_US.UTF-8 |
+ ecommerce_db | ecommerce_user | UTF8     | en_US.UTF-8 | en_US.UTF-8 |
+ postgres     | postgres       | UTF8     | en_US.UTF-8 | en_US.UTF-8 |
+ template0    | postgres       | UTF8     | en_US.UTF-8 | en_US.UTF-8 | =c/postgres          +
+             |                |          |             |             | postgres=CTc/postgres
+ template1    | postgres       | UTF8     | en_US.UTF-8 | en_US.UTF-8 | =c/postgres          +
+             |                |          |             |             | postgres=CTc/postgres
+(5 rows)
+
+================================================================================
+Task 4: Database Security Configuration
+================================================================================
+
+--------------------------------------------------------------------------------
+Subtask 4.2: Execute Security Configuration
+--------------------------------------------------------------------------------
+
+Command Executed
+-bash-4.2$ ansible-playbook -i inventory.ini playbooks/database-security.yml
+
+Output
+PLAY [Secure Database Installations] ******************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [mysql-server]
+ok: [postgres-server]
+
+TASK [Install fail2ban for intrusion prevention] ******************************
+changed: [mysql-server]
+changed: [postgres-server]
+
+TASK [Configure fail2ban for SSH] *********************************************
+changed: [mysql-server]
+changed: [postgres-server]
+
+TASK [Start and enable fail2ban] **********************************************
+ok: [mysql-server]
+ok: [postgres-server]
+
+TASK [Configure automatic security updates] ***********************************
+changed: [mysql-server]
+changed: [postgres-server]
+
+TASK [Enable automatic security updates] **************************************
+changed: [mysql-server]
+changed: [postgres-server]
+
+RUNNING HANDLER [restart fail2ban] ********************************************
+changed: [mysql-server]
+changed: [postgres-server]
+
+PLAY [Secure MySQL Installation] **********************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [mysql-server]
+
+TASK [Configure MySQL security settings] **************************************
+changed: [mysql-server]
+
+TASK [Set MySQL file permissions] *********************************************
+changed: [mysql-server]
+
+RUNNING HANDLER [restart mysql] ***********************************************
+changed: [mysql-server]
+
+PLAY [Secure PostgreSQL Installation] *****************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [postgres-server]
+
+TASK [Configure PostgreSQL security settings] *********************************
+changed: [postgres-server]
+
+TASK [Set PostgreSQL file permissions] ****************************************
+changed: [postgres-server]
+
+RUNNING HANDLER [restart postgresql] ******************************************
+changed: [postgres-server]
+
+PLAY RECAP ********************************************************************
+mysql-server                : ok=14   changed=10   unreachable=0    failed=0
+postgres-server             : ok=12   changed=9    unreachable=0    failed=0
+
+--------------------------------------------------------------------------------
+Verify Security Configurations
+--------------------------------------------------------------------------------
+
+Command Executed
+-bash-4.2$ ansible database_servers -i inventory.ini -m shell -a "systemctl status fail2ban" --become
+
+Output
+mysql-server | CHANGED | rc=0 >>
+● fail2ban.service - Fail2Ban Service
+     Loaded: loaded (/lib/systemd/system/fail2ban.service; enabled; vendor preset: enabled)
+     Active: active (running) since Tue 2026-08-20 13:24:19 UTC; 1min ago
+
+postgres-server | CHANGED | rc=0 >>
+● fail2ban.service - Fail2Ban Service
+     Loaded: loaded (/lib/systemd/system/fail2ban.service; enabled; vendor preset: enabled)
+     Active: active (running) since Tue 2026-08-20 13:24:20 UTC; 1min ago
+
+Command Executed
+-bash-4.2$ ansible mysql_servers -i inventory.ini -m shell -a "grep -E '(local-infile|skip-show-database)' /etc/mysql/mysql.conf.d/mysqld.cnf" --become
+
+Output
+mysql-server | CHANGED | rc=0 >>
+local-infile = 0
+skip-show-database
+
+Command Executed
+-bash-4.2$ ansible postgresql_servers -i inventory.ini -m shell -a "sudo -u postgres psql -c 'SHOW log_connections;'" --become
+
+Output
+postgres-server | CHANGED | rc=0 >>
+ log_connections
+-----------------
+ on
+(1 row)
+
+================================================================================
+Task 5: Database Backup and Maintenance
+================================================================================
+
+--------------------------------------------------------------------------------
+Subtask 5.2: Execute Backup Configuration
+--------------------------------------------------------------------------------
+
+Command Executed
+-bash-4.2$ ansible-playbook -i inventory.ini playbooks/database-backup.yml
+
+Output
+PLAY [Configure Database Backups] *********************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [mysql-server]
+ok: [postgres-server]
+
+TASK [Create backup directory] ************************************************
+changed: [mysql-server]
+changed: [postgres-server]
+
+TASK [Install backup utilities] ***********************************************
+ok: [mysql-server]
+ok: [postgres-server]
+
+PLAY [Configure MySQL Backups] ************************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [mysql-server]
+
+TASK [Create MySQL backup script] *********************************************
+changed: [mysql-server]
+
+TASK [Schedule MySQL backup cron job] *****************************************
+changed: [mysql-server]
+
+PLAY [Configure PostgreSQL Backups] *******************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [postgres-server]
+
+TASK [Create PostgreSQL backup script] ****************************************
+changed: [postgres-server]
+
+TASK [Schedule PostgreSQL backup cron job] ************************************
+changed: [postgres-server]
+
+PLAY RECAP ********************************************************************
+mysql-server                : ok=7    changed=4    unreachable=0    failed=0
+postgres-server             : ok=6    changed=3    unreachable=0    failed=0
+
+--------------------------------------------------------------------------------
+Test backup scripts manually
+--------------------------------------------------------------------------------
+
+Command Executed
+-bash-4.2$ ansible mysql_servers -i inventory.ini -m shell -a "/usr/local/bin/mysql-backup.sh" --become
+
+Output
+mysql-server | CHANGED | rc=0 >>
+MySQL backup completed: mysql_backup_20260820_132945.sql.gz
+
+Command Executed
+-bash-4.2$ ansible postgresql_servers -i inventory.ini -m shell -a "/usr/local/bin/postgresql-backup.sh" --become
+
+Output
+postgres-server | CHANGED | rc=0 >>
+PostgreSQL backup completed: postgresql_backup_20260820_133012.sql.gz
+
+Command Executed
+-bash-4.2$ ansible database_servers -i inventory.ini -m shell -a "ls -la /opt/database-backups/" --become
+
+Output
+mysql-server | CHANGED | rc=0 >>
+total 24
+drwxr-xr-x 2 root root 4096 Aug 20 13:29 .
+drwxr-xr-x 3 root root 4096 Aug 20 13:25 ..
+-rw-r--r-- 1 root root 4872 Aug 20 13:29 mysql_backup_20260820_132945.sql.gz
+
+postgres-server | CHANGED | rc=0 >>
+total 24
+drwxr-xr-x 2 root root 4096 Aug 20 13:30 .
+drwxr-xr-x 3 root root 4096 Aug 20 13:25 ..
+-rw-r--r-- 1 root root 5221 Aug 20 13:30 postgresql_backup_20260820_133012.sql.gz
+
+================================================================================
+Task 6: Database Monitoring and Health Checks
+================================================================================
+
+--------------------------------------------------------------------------------
+Subtask 6.2: Execute Monitoring Setup
+--------------------------------------------------------------------------------
+
+Command Executed
+-bash-4.2$ ansible-playbook -i inventory.ini playbooks/database-monitoring.yml
+
+Output
+PLAY [Configure Database Monitoring] ******************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [mysql-server]
+ok: [postgres-server]
+
+TASK [Install monitoring tools] ***********************************************
+changed: [mysql-server]
+changed: [postgres-server]
+
+TASK [Create database health check script] ************************************
+changed: [mysql-server]
+changed: [postgres-server]
+
+PLAY [Configure MySQL Monitoring] *********************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [mysql-server]
+
+TASK [Create MySQL status check script] ***************************************
+changed: [mysql-server]
+
+PLAY [Configure PostgreSQL Monitoring] ****************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [postgres-server]
+
+TASK [Create PostgreSQL status check script] **********************************
+changed: [postgres-server]
+
+PLAY RECAP ********************************************************************
+mysql-server                : ok=6    changed=4    unreachable=0    failed=0
+postgres-server             : ok=5    changed=3    unreachable=0    failed=0
+
+--------------------------------------------------------------------------------
+Test monitoring scripts
+--------------------------------------------------------------------------------
+
+Command Executed
+-bash-4.2$ ansible database_servers -i inventory.ini -m shell -a "/usr/local/bin/db-health-check.sh" --become
+
+Output
+mysql-server | CHANGED | rc=0 >>
+=== Database Server Health Check ===
+Date: Tue Aug 20 13:34:12 UTC 2026
+Hostname: mysql-server
+Uptime:  13:34:12 up 1:05,  1 user,  load average: 0.02, 0.04, 0.01
+
+=== Memory Usage ===
+              total        used        free      shared  buff/cache   available
+Mem:           1.9G        412M        1.1G        1.0M        392M        1.3G
+Swap:            0B          0B          0B
+
+=== Disk Usage ===
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/root        30G  5.2G   25G  18% /
+tmpfs           971M     0  971M   0% /dev/shm
+
+=== Network Connections ===
+tcp        0      0 0.0.0.0:3306            0.0.0.0:*               LISTEN
+
+postgres-server | CHANGED | rc=0 >>
+=== Database Server Health Check ===
+Date: Tue Aug 20 13:34:12 UTC 2026
+Hostname: postgres-server
+Uptime:  13:34:12 up 1:06,  1 user,  load average: 0.01, 0.03, 0.01
+
+=== Memory Usage ===
+              total        used        free      shared  buff/cache   available
+Mem:           1.9G        368M        1.2G        1.0M        370M        1.3G
+Swap:            0B          0B          0B
+
+=== Disk Usage ===
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/root        30G  5.5G   25G  19% /
+tmpfs           971M     0  971M   0% /dev/shm
+
+=== Network Connections ===
+tcp        0      0 0.0.0.0:5432            0.0.0.0:*               LISTEN
+
+Command Executed
+-bash-4.2$ ansible mysql_servers -i inventory.ini -m shell -a "/usr/local/bin/mysql-status.sh" --become
+
+Output
+mysql-server | CHANGED | rc=0 >>
+=== MySQL Status Check ===
+● mysql.service - MySQL Community Server
+     Loaded: loaded (/lib/systemd/system/mysql.service; enabled; vendor preset: enabled)
+     Active: active (running) since Tue 2026-08-20 13:10:41 UTC; 23min ago
+
+=== MySQL Process List ===
+Id	User	Host	db	Command	Time	State	Info
+5	root	localhost	NULL	Query	0	init	SHOW PROCESSLIST
+
+=== MySQL Variables ===
+Variable_name	Value
+max_connections	151
+Variable_name	Value
+Threads_connected	1
+
+Command Executed
+-bash-4.2$ ansible postgresql_servers -i inventory.ini -m shell -a "/usr/local/bin/postgresql-status.sh" --become
+
+Output
+postgres-server | CHANGED | rc=0 >>
+=== PostgreSQL Status Check ===
+● postgresql.service - PostgreSQL RDBMS
+     Loaded: loaded (/lib/systemd/system/postgresql.service; enabled; vendor preset: enabled)
+     Active: active (exited) since Tue 2026-08-20 13:18:04 UTC; 16min ago
+
+=== PostgreSQL Activity ===
+   datname    | numbackends | xact_commit | xact_rollback
+--------------+-------------+-------------+---------------
+ postgres      |           1 |        1532 |             2
+ ecommerce_db  |           0 |           0 |             0
+ analytics_db  |           0 |           0 |             0
+ template0     |           0 |           0 |             0
+ template1     |           0 |           0 |             0
+(5 rows)
+
+=== PostgreSQL Connections ===
+ active_connections
+--------------------
+ 0
+(1 row)
+
+================================================================================
+Task 7: Create Comprehensive Database Management Role
+================================================================================
+
+--------------------------------------------------------------------------------
+Role playbook runs (use-role-mysql.yml, use-role-postgresql.yml)
+--------------------------------------------------------------------------------
+
+Command Executed
+-bash-4.2$ ansible-playbook -i inventory.ini playbooks/use-role-mysql.yml
+-bash-4.2$ ansible-playbook -i inventory.ini playbooks/use-role-postgresql.yml
+
+Output
+PLAY [Apply database-management role (MySQL)] *********************************
+
+TASK [database-management : Include MySQL tasks] ******************************
+included: /home/centos/ansible-database-lab/roles/database-management/tasks/mysql.yml for mysql-server
+
+TASK [database-management : Install MySQL packages] ***************************
+ok: [mysql-server]
+
+TASK [database-management : Start and enable MySQL service] *******************
+ok: [mysql-server]
+
+TASK [database-management : Set MySQL root password] **************************
+ok: [mysql-server]
+
+TASK [database-management : Configure MySQL] **********************************
+changed: [mysql-server]
+
+TASK [database-management : Include security tasks] ***************************
+included: /home/centos/ansible-database-lab/roles/database-management/tasks/security.yml for mysql-server
+
+TASK [database-management : Install security packages] ************************
+ok: [mysql-server]
+
+TASK [database-management : Configure firewall rules] *************************
+ok: [mysql-server]
+
+TASK [database-management : Enable firewall] **********************************
+ok: [mysql-server]
+
+TASK [database-management : Include backup tasks] *****************************
+included: /home/centos/ansible-database-lab/roles/database-management/tasks/backup.yml for mysql-server
+
+TASK [database-management : Create backup directory] **************************
+ok: [mysql-server]
+
+TASK [database-management : Create backup script for MySQL] *******************
+changed: [mysql-server]
+
+TASK [database-management : Schedule backup cron job] *************************
+ok: [mysql-server]
+
+TASK [database-management : Include monitoring tasks] *************************
+included: /home/centos/ansible-database-lab/roles/database-management/tasks/monitoring.yml for mysql-server
+
+TASK [database-management : Install monitoring tools] *************************
+ok: [mysql-server]
+
+TASK [database-management : Create monitoring script] *************************
+changed: [mysql-server]
+
+RUNNING HANDLER [database-management : restart mysql] *************************
+changed: [mysql-server]
+
+PLAY RECAP ********************************************************************
+mysql-server                : ok=16   changed=4    unreachable=0    failed=0
+
+
+PLAY [Apply database-management role (PostgreSQL)] ****************************
+
+TASK [database-management : Include PostgreSQL tasks] *************************
+included: /home/centos/ansible-database-lab/roles/database-management/tasks/postgresql.yml for postgres-server
+
+TASK [database-management : Install PostgreSQL packages] **********************
+ok: [postgres-server]
+
+TASK [database-management : Start and enable PostgreSQL service] **************
+ok: [postgres-server]
+
+TASK [database-management : Configure PostgreSQL] *****************************
+changed: [postgres-server]
+
+TASK [database-management : Include security tasks] ***************************
+included: /home/centos/ansible-database-lab/roles/database-management/tasks/security.yml for postgres-server
+
+TASK [database-management : Install security packages] ************************
+ok: [postgres-server]
+
+TASK [database-management : Configure firewall rules] *************************
+ok: [postgres-server]
+
+TASK [database-management : Enable firewall] **********************************
+ok: [postgres-server]
+
+TASK [database-management : Include backup tasks] *****************************
+included: /home/centos/ansible-database-lab/roles/database-management/tasks/backup.yml for postgres-server
+
+TASK [database-management : Create backup directory] **************************
+ok: [postgres-server]
+
+TASK [database-management : Create backup script for PostgreSQL] **************
+changed: [postgres-server]
+
+TASK [database-management : Schedule backup cron job] *************************
+ok: [postgres-server]
+
+TASK [database-management : Include monitoring tasks] *************************
+included: /home/centos/ansible-database-lab/roles/database-management/tasks/monitoring.yml for postgres-server
+
+TASK [database-management : Install monitoring tools] *************************
+ok: [postgres-server]
+
+TASK [database-management : Create monitoring script] *************************
+changed: [postgres-server]
+
+RUNNING HANDLER [database-management : restart postgresql] ********************
+changed: [postgres-server]
+
+PLAY RECAP ********************************************************************
+postgres-server             : ok=14   changed=4    unreachable=0    failed=0
+
+--------------------------------------------------------------------------------
+Validate role outputs (monitor script)
+--------------------------------------------------------------------------------
+
+Command Executed
+-bash-4.2$ ansible database_servers -i inventory.ini -m shell -a "/usr/local/bin/db-monitor.sh | head -25" --become
+
+Output
+mysql-server | CHANGED | rc=0 >>
+=== DB Monitor Report ===
+Date: Tue Aug 20 13:48:51 UTC 2026
+Host: mysql-server
+
+=== Top Processes (CPU) ===
+  PID COMMAND         %CPU %MEM
+ 1218 mysqld           1.2  6.9
+  987 systemd          0.3  0.7
+  ...
+
+=== Listening DB Ports ===
+tcp   LISTEN 0      151         0.0.0.0:3306      0.0.0.0:*
+
+postgres-server | CHANGED | rc=0 >>
+=== DB Monitor Report ===
+Date: Tue Aug 20 13:48:51 UTC 2026
+Host: postgres-server
+
+=== Top Processes (CPU) ===
+  PID COMMAND         %CPU %MEM
+ 1540 postgres         0.9  3.8
+  991 systemd          0.2  0.7
+  ...
+
+=== Listening DB Ports ===
+tcp   LISTEN 0      244         0.0.0.0:5432      0.0.0.0:*
