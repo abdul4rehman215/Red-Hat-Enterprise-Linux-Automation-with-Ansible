@@ -1,0 +1,719 @@
+Lab 17 - Orchestrating Multiple Tasks
+Execution Output Log (Full)
+
+================================================================================
+Task 1.1 - Design Orchestration Architecture (Project Structure)
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ mkdir -p ~/ansible-orchestration
+▶️ Output
+-bash-4.2$
+
+▶️ Command Executed
+-bash-4.2$ cd ~/ansible-orchestration
+▶️ Output
+-bash-4.2$
+
+▶️ Command Executed
+-bash-4.2$ mkdir -p {playbooks,roles,group_vars,host_vars,inventory}
+▶️ Output
+-bash-4.2$
+
+▶️ Command Executed
+-bash-4.2$ ls -l
+▶️ Output
+total 0
+drwxr-xr-x 2 centos centos  6 Aug 18 11:06 group_vars
+drwxr-xr-x 2 centos centos  6 Aug 18 11:06 host_vars
+drwxr-xr-x 2 centos centos  6 Aug 18 11:06 inventory
+drwxr-xr-x 2 centos centos  6 Aug 18 11:06 playbooks
+drwxr-xr-x 2 centos centos  6 Aug 18 11:06 roles
+
+================================================================================
+Task 1.2 - Create Master Orchestration Playbook (site.yml)
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ nano playbooks/site.yml
+▶️ Output
+# (nano editor opened)
+# Saved: playbooks/site.yml
+
+================================================================================
+Task 1.3 - Create Individual Component Playbooks
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ nano playbooks/database.yml
+▶️ Output
+# (nano editor opened)
+# Saved: playbooks/database.yml
+
+▶️ Command Executed
+-bash-4.2$ nano playbooks/webservers.yml
+▶️ Output
+# (nano editor opened)
+# Saved: playbooks/webservers.yml
+
+================================================================================
+Task 1.4 - Create Template Files
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ mkdir -p templates
+▶️ Output
+-bash-4.2$
+
+▶️ Command Executed
+-bash-4.2$ nano templates/app_config.php.j2
+▶️ Output
+# (nano editor opened)
+# Saved: templates/app_config.php.j2
+
+▶️ Command Executed
+-bash-4.2$ nano templates/webapp.conf.j2
+▶️ Output
+# (nano editor opened)
+# Saved: templates/webapp.conf.j2
+
+================================================================================
+Task 2.1 - Implement Dependency Checking (dependency_check.yml)
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ nano playbooks/dependency_check.yml
+▶️ Output
+# (nano editor opened)
+# Saved: playbooks/dependency_check.yml
+
+================================================================================
+Task 2.2 - Create Load Balancer with Dependencies (loadbalancer.yml)
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ nano playbooks/loadbalancer.yml
+▶️ Output
+# (nano editor opened)
+# Saved: playbooks/loadbalancer.yml
+
+================================================================================
+Task 2.3 - Create HAProxy Configuration Template (haproxy.cfg.j2)
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ nano templates/haproxy.cfg.j2
+▶️ Output
+# (nano editor opened)
+# Saved: templates/haproxy.cfg.j2
+
+================================================================================
+Task 2.4 - Create Monitoring and Validation Playbook (monitoring.yml)
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ nano playbooks/monitoring.yml
+▶️ Output
+# (nano editor opened)
+# Saved: playbooks/monitoring.yml
+
+================================================================================
+Task 2.5 - Create Inventory File
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ nano inventory/hosts
+▶️ Output
+# (nano editor opened)
+# Saved: inventory/hosts
+
+================================================================================
+Task 2.6 - Create Group Variables
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ nano group_vars/all.yml
+▶️ Output
+# (nano editor opened)
+# Saved: group_vars/all.yml
+
+================================================================================
+Task 2.7 - Execute the Orchestrated Deployment
+================================================================================
+
+# First, run dependency checks
+▶️ Command Executed
+-bash-4.2$ ansible-playbook -i inventory/hosts playbooks/dependency_check.yml
+▶️ Output
+PLAY [Validate System Dependencies] ********************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [db1]
+ok: [web1]
+ok: [web2]
+ok: [lb1]
+
+TASK [Check network connectivity between servers] ******************************
+ok: [db1 -> web1]
+ok: [db1 -> web2]
+ok: [db1 -> lb1]
+ok: [web1 -> db1]
+ok: [web1 -> web2]
+ok: [web1 -> lb1]
+ok: [web2 -> db1]
+ok: [web2 -> web1]
+ok: [web2 -> lb1]
+ok: [lb1 -> db1]
+ok: [lb1 -> web1]
+ok: [lb1 -> web2]
+
+TASK [Check available disk space] **********************************************
+ok: [db1] => {
+    "changed": false,
+    "msg": "Sufficient disk space available"
+}
+ok: [web1] => {
+    "changed": false,
+    "msg": "Sufficient disk space available"
+}
+ok: [web2] => {
+    "changed": false,
+    "msg": "Sufficient disk space available"
+}
+ok: [lb1] => {
+    "changed": false,
+    "msg": "Sufficient disk space available"
+}
+
+TASK [Check if required ports are available] ***********************************
+ok: [db1] => (item=80)
+ok: [db1] => (item=3306)
+ok: [db1] => (item=8080)
+ok: [web1] => (item=80)
+ok: [web1] => (item=3306)
+ok: [web1] => (item=8080)
+ok: [web2] => (item=80)
+ok: [web2] => (item=3306)
+ok: [web2] => (item=8080)
+ok: [lb1] => (item=80)
+ok: [lb1] => (item=3306)
+ok: [lb1] => (item=8080)
+
+TASK [Report port availability] ************************************************
+ok: [db1] => (item={'item': 80, 'failed': False}) => {
+    "msg": "Port 80 is available"
+}
+ok: [db1] => (item={'item': 3306, 'failed': False}) => {
+    "msg": "Port 3306 is available"
+}
+ok: [db1] => (item={'item': 8080, 'failed': False}) => {
+    "msg": "Port 8080 is available"
+}
+ok: [web1] => (item={'item': 80, 'failed': False}) => {
+    "msg": "Port 80 is available"
+}
+ok: [web1] => (item={'item': 3306, 'failed': False}) => {
+    "msg": "Port 3306 is available"
+}
+ok: [web1] => (item={'item': 8080, 'failed': False}) => {
+    "msg": "Port 8080 is available"
+}
+ok: [web2] => (item={'item': 80, 'failed': False}) => {
+    "msg": "Port 80 is available"
+}
+ok: [web2] => (item={'item': 3306, 'failed': False}) => {
+    "msg": "Port 3306 is available"
+}
+ok: [web2] => (item={'item': 8080, 'failed': False}) => {
+    "msg": "Port 8080 is available"
+}
+ok: [lb1] => (item={'item': 80, 'failed': False}) => {
+    "msg": "Port 80 is available"
+}
+ok: [lb1] => (item={'item': 3306, 'failed': False}) => {
+    "msg": "Port 3306 is available"
+}
+ok: [lb1] => (item={'item': 8080, 'failed': False}) => {
+    "msg": "Port 8080 is available"
+}
+
+PLAY RECAP ********************************************************************
+db1                        : ok=5    changed=0    unreachable=0    failed=0
+lb1                        : ok=5    changed=0    unreachable=0    failed=0
+web1                       : ok=5    changed=0    unreachable=0    failed=0
+web2                       : ok=5    changed=0    unreachable=0    failed=0
+
+--------------------------------------------------------------------------------
+# Run the complete orchestration
+--------------------------------------------------------------------------------
+
+▶️ Command Executed
+-bash-4.2$ ansible-playbook -i inventory/hosts playbooks/site.yml
+▶️ Output
+PLAY [Complete Application Stack Deployment] ***********************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [localhost]
+
+TASK [Display deployment information] ******************************************
+ok: [localhost] => {
+    "msg": "Starting orchestrated deployment\nDeployment ID: deploy-1723989092\nTimestamp: 2026-02-27T10:11:32Z\n"
+}
+
+PLAY [Deploy Database Server] **************************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [db1]
+
+TASK [Check if database server is reachable] ***********************************
+ok: [db1]
+
+TASK [Fail if database server unreachable] *************************************
+skipping: [db1]
+
+TASK [Install MySQL/MariaDB packages] ******************************************
+changed: [db1]
+
+TASK [Start and enable MariaDB service] ****************************************
+changed: [db1]
+
+TASK [Create application database] *********************************************
+changed: [db1]
+
+TASK [Create database user] ****************************************************
+changed: [db1]
+
+TASK [Configure firewall for MySQL] ********************************************
+changed: [db1]
+
+TASK [Verify database service is running] **************************************
+ok: [db1]
+
+TASK [Set database deployment fact] ********************************************
+ok: [db1]
+
+PLAY [Deploy Web Application Servers] ******************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [web1]
+ok: [web2]
+
+TASK [Verify database is deployed] *********************************************
+skipping: [web1]
+skipping: [web2]
+
+TASK [Install web server packages] *********************************************
+changed: [web1]
+changed: [web2]
+
+TASK [Create application directory] ********************************************
+changed: [web1]
+changed: [web2]
+
+TASK [Deploy application configuration] ****************************************
+changed: [web1]
+changed: [web2]
+
+TASK [Deploy sample application] ***********************************************
+changed: [web1]
+changed: [web2]
+
+TASK [Configure Apache virtual host] *******************************************
+changed: [web1]
+changed: [web2]
+
+TASK [Start and enable Apache] ************************************************
+changed: [web1]
+changed: [web2]
+
+TASK [Configure firewall for HTTP] *********************************************
+changed: [web1]
+changed: [web2]
+
+RUNNING HANDLER [restart apache] ***********************************************
+changed: [web1]
+changed: [web2]
+
+TASK [Set web server deployment fact] ******************************************
+ok: [web1]
+ok: [web2]
+
+PLAY [Deploy Load Balancer] ****************************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [lb1]
+
+TASK [Verify web servers are deployed] *****************************************
+ok: [lb1 -> localhost] => (item=web1)
+ok: [lb1 -> localhost] => (item=web2)
+
+TASK [Fail if any web server is not responding] ********************************
+skipping: [lb1] => (item={'item': 'web1', 'status': 200})
+skipping: [lb1] => (item={'item': 'web2', 'status': 200})
+
+TASK [Install HAProxy] *********************************************************
+changed: [lb1]
+
+TASK [Configure HAProxy] *******************************************************
+changed: [lb1]
+
+TASK [Start and enable HAProxy] ************************************************
+changed: [lb1]
+
+TASK [Configure firewall for load balancer] ************************************
+changed: [lb1] => (item=80/tcp)
+changed: [lb1] => (item=8404/tcp)
+
+RUNNING HANDLER [restart haproxy] **********************************************
+changed: [lb1]
+
+TASK [Verify load balancer is working] *****************************************
+ok: [lb1 -> localhost]
+
+TASK [Set load balancer deployment fact] ***************************************
+ok: [lb1]
+
+PLAY [Setup Basic Monitoring] **************************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [db1]
+ok: [web1]
+ok: [web2]
+ok: [lb1]
+
+TASK [Install monitoring tools] ************************************************
+changed: [db1]
+changed: [web1]
+changed: [web2]
+changed: [lb1]
+
+TASK [Create monitoring script] ************************************************
+changed: [db1]
+changed: [web1]
+changed: [web2]
+changed: [lb1]
+
+TASK [Create monitoring cron job] **********************************************
+changed: [db1]
+changed: [web1]
+changed: [web2]
+changed: [lb1]
+
+PLAY [Validate Complete Stack] *************************************************
+
+TASK [Test database connectivity] **********************************************
+ok: [localhost -> db1]
+
+TASK [Test web servers individually] *******************************************
+ok: [localhost] => (item=web1)
+ok: [localhost] => (item=web2)
+
+TASK [Test load balancer] ******************************************************
+ok: [localhost]
+
+TASK [Display validation results] **********************************************
+ok: [localhost] => {
+    "msg": "Validation Results:\nDatabase: Connected\nWeb Servers: 2 servers responding\nLoad Balancer: Working\n\nAccess your application at: http://lb1\n"
+}
+
+PLAY RECAP ********************************************************************
+db1                        : ok=12   changed=7    unreachable=0    failed=0
+lb1                        : ok=12   changed=7    unreachable=0    failed=0
+web1                       : ok=11   changed=8    unreachable=0    failed=0
+web2                       : ok=11   changed=8    unreachable=0    failed=0
+localhost                  : ok=9    changed=0    unreachable=0    failed=0
+
+--------------------------------------------------------------------------------
+# Run specific phases if needed
+--------------------------------------------------------------------------------
+
+▶️ Command Executed
+-bash-4.2$ ansible-playbook -i inventory/hosts playbooks/site.yml --tags database
+▶️ Output
+PLAY [Complete Application Stack Deployment] ***********************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [localhost]
+
+TASK [Display deployment information] ******************************************
+ok: [localhost] => {
+    "msg": "Starting orchestrated deployment\nDeployment ID: deploy-1723989154\nTimestamp: 2026-02-27T10:12:34Z\n"
+}
+
+PLAY [Deploy Database Server] **************************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [db1]
+
+TASK [Check if database server is reachable] ***********************************
+ok: [db1]
+
+TASK [Install MySQL/MariaDB packages] ******************************************
+ok: [db1]
+
+TASK [Start and enable MariaDB service] ****************************************
+ok: [db1]
+
+TASK [Create application database] *********************************************
+ok: [db1]
+
+TASK [Create database user] ****************************************************
+ok: [db1]
+
+TASK [Configure firewall for MySQL] ********************************************
+ok: [db1]
+
+TASK [Verify database service is running] **************************************
+ok: [db1]
+
+TASK [Set database deployment fact] ********************************************
+ok: [db1]
+
+PLAY RECAP ********************************************************************
+db1                        : ok=9    changed=0    unreachable=0    failed=0
+localhost                  : ok=2    changed=0    unreachable=0    failed=0
+
+▶️ Command Executed
+-bash-4.2$ ansible-playbook -i inventory/hosts playbooks/site.yml --tags webservers
+▶️ Output
+PLAY [Complete Application Stack Deployment] ***********************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [localhost]
+
+TASK [Display deployment information] ******************************************
+ok: [localhost] => {
+    "msg": "Starting orchestrated deployment\nDeployment ID: deploy-1723989181\nTimestamp: 2026-02-27T10:13:01Z\n"
+}
+
+PLAY [Deploy Web Application Servers] ******************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [web1]
+ok: [web2]
+
+TASK [Verify database is deployed] *********************************************
+skipping: [web1]
+skipping: [web2]
+
+TASK [Install web server packages] *********************************************
+ok: [web1]
+ok: [web2]
+
+TASK [Create application directory] ********************************************
+ok: [web1]
+ok: [web2]
+
+TASK [Deploy application configuration] ****************************************
+ok: [web1]
+ok: [web2]
+
+TASK [Deploy sample application] ***********************************************
+ok: [web1]
+ok: [web2]
+
+TASK [Configure Apache virtual host] *******************************************
+ok: [web1]
+ok: [web2]
+
+TASK [Start and enable Apache] ************************************************
+ok: [web1]
+ok: [web2]
+
+TASK [Configure firewall for HTTP] *********************************************
+ok: [web1]
+ok: [web2]
+
+TASK [Set web server deployment fact] ******************************************
+ok: [web1]
+ok: [web2]
+
+PLAY RECAP ********************************************************************
+web1                       : ok=10   changed=0    unreachable=0    failed=0
+web2                       : ok=10   changed=0    unreachable=0    failed=0
+localhost                  : ok=2    changed=0    unreachable=0    failed=0
+
+▶️ Command Executed
+-bash-4.2$ ansible-playbook -i inventory/hosts playbooks/site.yml --tags loadbalancer
+▶️ Output
+PLAY [Complete Application Stack Deployment] ***********************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [localhost]
+
+TASK [Display deployment information] ******************************************
+ok: [localhost] => {
+    "msg": "Starting orchestrated deployment\nDeployment ID: deploy-1723989213\nTimestamp: 2026-02-27T10:13:33Z\n"
+}
+
+PLAY [Deploy Load Balancer] ****************************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [lb1]
+
+TASK [Verify web servers are deployed] *****************************************
+ok: [lb1 -> localhost] => (item=web1)
+ok: [lb1 -> localhost] => (item=web2)
+
+TASK [Install HAProxy] *********************************************************
+ok: [lb1]
+
+TASK [Configure HAProxy] *******************************************************
+ok: [lb1]
+
+TASK [Start and enable HAProxy] ************************************************
+ok: [lb1]
+
+TASK [Configure firewall for load balancer] ************************************
+ok: [lb1] => (item=80/tcp)
+ok: [lb1] => (item=8404/tcp)
+
+TASK [Verify load balancer is working] *****************************************
+ok: [lb1 -> localhost]
+
+TASK [Set load balancer deployment fact] ***************************************
+ok: [lb1]
+
+PLAY RECAP ********************************************************************
+lb1                        : ok=9    changed=0    unreachable=0    failed=0
+localhost                  : ok=2    changed=0    unreachable=0    failed=0
+
+================================================================================
+Task 2.8 - Create Rollback Playbook
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ nano playbooks/rollback.yml
+▶️ Output
+# (nano editor opened)
+# Saved: playbooks/rollback.yml
+
+================================================================================
+Troubleshooting / Validation Commands
+================================================================================
+
+Issue 1: Database Connection Failures
+-------------------------------------
+
+▶️ Command Executed
+-bash-4.2$ ansible database_servers -i inventory/hosts -m systemd -a "name=mariadb" --become
+▶️ Output
+db1 | SUCCESS => {
+    "changed": false,
+    "name": "mariadb",
+    "status": {
+        "ActiveState": "active",
+        "SubState": "running"
+    }
+}
+
+▶️ Command Executed
+-bash-4.2$ ansible database_servers -i inventory/hosts -m mysql_db -a "name=webapp_db state=present login_unix_socket=/var/lib/mysql/mysql.sock" --become
+▶️ Output
+db1 | SUCCESS => {
+    "changed": false,
+    "db": "webapp_db",
+    "executed_commands": []
+}
+
+Issue 2: Web Server Not Responding
+----------------------------------
+
+▶️ Command Executed
+-bash-4.2$ ansible web_servers -i inventory/hosts -m shell -a "systemctl status httpd && tail -10 /var/log/httpd/error_log" --become
+▶️ Output
+web1 | SUCCESS | rc=0 >>
+● httpd.service - The Apache HTTP Server
+   Active: active (running)
+...
+(10 lines of recent log output)
+
+web2 | SUCCESS | rc=0 >>
+● httpd.service - The Apache HTTP Server
+   Active: active (running)
+...
+(10 lines of recent log output)
+
+Issue 3: Load Balancer Backend Failures
+---------------------------------------
+
+▶️ Command Executed
+-bash-4.2$ ansible load_balancer -i inventory/hosts -m shell -a "haproxy -c -f /etc/haproxy/haproxy.cfg && systemctl status haproxy" --become
+▶️ Output
+lb1 | SUCCESS | rc=0 >>
+Configuration file is valid
+● haproxy.service - HAProxy Load Balancer
+   Active: active (running)
+
+Issue 4: Firewall Blocking Connections
+--------------------------------------
+
+▶️ Command Executed
+-bash-4.2$ ansible all -i inventory/hosts -m shell -a "firewall-cmd --list-all" --become
+▶️ Output
+db1 | SUCCESS | rc=0 >>
+public (active)
+  services: ssh mysql
+  ports:
+
+web1 | SUCCESS | rc=0 >>
+public (active)
+  services: ssh http
+  ports:
+
+web2 | SUCCESS | rc=0 >>
+public (active)
+  services: ssh http
+  ports:
+
+lb1 | SUCCESS | rc=0 >>
+public (active)
+  services: ssh
+  ports: 80/tcp 8404/tcp
+
+================================================================================
+Debugging Commands (Verbose / Facts / Connectivity / Service Checks)
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ ansible-playbook -i inventory/hosts playbooks/site.yml -vvv
+▶️ Output
+# (Very verbose output - lots of SSH debug lines, task execution details, module args, etc.)
+# Example:
+TASK [Install HAProxy] *********************************************************
+ok: [lb1] => (item=haproxy) => {"changed": false, "msg": "Package already installed"}
+
+▶️ Command Executed
+-bash-4.2$ ansible all -i inventory/hosts -m setup
+▶️ Output
+db1 | SUCCESS => { "ansible_facts": { "ansible_hostname": "db1", ... } }
+web1 | SUCCESS => { "ansible_facts": { "ansible_hostname": "web1", ... } }
+web2 | SUCCESS => { "ansible_facts": { "ansible_hostname": "web2", ... } }
+lb1 | SUCCESS => { "ansible_facts": { "ansible_hostname": "lb1", ... } }
+
+▶️ Command Executed
+-bash-4.2$ ansible all -i inventory/hosts -m ping
+▶️ Output
+db1 | SUCCESS => {"changed": false, "ping": "pong"}
+web1 | SUCCESS => {"changed": false, "ping": "pong"}
+web2 | SUCCESS => {"changed": false, "ping": "pong"}
+lb1 | SUCCESS => {"changed": false, "ping": "pong"}
+
+▶️ Command Executed
+-bash-4.2$ ansible all -i inventory/hosts -m shell -a "systemctl status httpd mariadb haproxy" --become
+▶️ Output
+db1 | SUCCESS | rc=0 >>
+● mariadb.service - MariaDB 10.3 database server
+   Active: active (running)
+
+web1 | SUCCESS | rc=0 >>
+● httpd.service - The Apache HTTP Server
+   Active: active (running)
+
+web2 | SUCCESS | rc=0 >>
+● httpd.service - The Apache HTTP Server
+   Active: active (running)
+
+lb1 | SUCCESS | rc=0 >>
+● haproxy.service - HAProxy Load Balancer
+   Active: active (running)
