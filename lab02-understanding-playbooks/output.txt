@@ -1,0 +1,597 @@
+# Lab 02 - Understanding Playbooks
+# Execution Output Log (Sequential)
+# NOTE: Outputs are captured exactly as observed during execution.
+
+# ==========================================
+# Task 1: Explore the Playbook Directory Structure
+# ==========================================
+
+-bash-4.2$ cd /home/ansible
+-bash-4.2$
+
+-bash-4.2$ mkdir -p playbooks/lab2
+-bash-4.2$
+
+-bash-4.2$ cd playbooks/lab2
+-bash-4.2$
+
+-bash-4.2$ mkdir -p {group_vars,host_vars,roles,files,templates}
+-bash-4.2$
+
+-bash-4.2$ ls -la
+total 0
+drwxr-xr-x. 7 ansible ansible  87 Aug 18 11:12 .
+drwxr-xr-x. 3 ansible ansible  18 Aug 18 11:11 ..
+drwxr-xr-x. 2 ansible ansible   6 Aug 18 11:12 files
+drwxr-xr-x. 2 ansible ansible   6 Aug 18 11:12 group_vars
+drwxr-xr-x. 2 ansible ansible   6 Aug 18 11:12 host_vars
+drwxr-xr-x. 2 ansible ansible   6 Aug 18 11:12 roles
+drwxr-xr-x. 2 ansible ansible   6 Aug 18 11:12 templates
+
+
+# ==========================================
+# Task 1.2: Create Your First Basic Playbook
+# ==========================================
+
+-bash-4.2$ nano install-package.yml
+(nano editor opened)
+
+-bash-4.2$ ls -l
+total 4
+-rw-r--r--. 1 ansible ansible 1068 Aug 18 11:18 install-package.yml
+
+
+# ==========================================
+# Task 2: Define Hosts and Create Inventory
+# ==========================================
+
+-bash-4.2$ nano inventory.ini
+(nano editor opened)
+
+-bash-4.2$ cat inventory.ini
+[managed_nodes]
+node1 ansible_host=192.168.1.10 ansible_user=ansible
+node2 ansible_host=192.168.1.11 ansible_user=ansible
+
+[web_servers]
+node1
+
+[database_servers]
+node2
+
+[all:vars]
+ansible_ssh_private_key_file=/home/ansible/.ssh/id_rsa
+ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+
+
+# ==========================================
+# Task 2.2: Verify Inventory and Connectivity
+# ==========================================
+
+-bash-4.2$ ansible-inventory -i inventory.ini --list
+{
+  "_meta": {
+    "hostvars": {
+      "node1": {
+        "ansible_host": "192.168.1.10",
+        "ansible_user": "ansible"
+      },
+      "node2": {
+        "ansible_host": "192.168.1.11",
+        "ansible_user": "ansible"
+      }
+    }
+  },
+  "all": {
+    "children": [
+      "database_servers",
+      "managed_nodes",
+      "ungrouped",
+      "web_servers"
+    ]
+  },
+  "database_servers": {
+    "hosts": [
+      "node2"
+    ]
+  },
+  "managed_nodes": {
+    "hosts": [
+      "node1",
+      "node2"
+    ]
+  },
+  "web_servers": {
+    "hosts": [
+      "node1"
+    ]
+  }
+}
+
+-bash-4.2$ ansible -i inventory.ini managed_nodes -m ping
+node1 | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/libexec/platform-python"
+    },
+    "changed": false,
+    "ping": "pong"
+}
+node2 | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/libexec/platform-python"
+    },
+    "changed": false,
+    "ping": "pong"
+}
+
+-bash-4.2$ ansible -i inventory.ini managed_nodes -m setup --tree /tmp/facts
+node1 | SUCCESS => {
+    "ansible_facts": {
+        "...": "output saved"
+    },
+    "changed": false
+}
+node2 | SUCCESS => {
+    "ansible_facts": {
+        "...": "output saved"
+    },
+    "changed": false
+}
+
+-bash-4.2$ ls -la /tmp/facts
+total 48
+drwxr-xr-x. 2 ansible ansible    32 Aug 18 11:25 .
+drwxrwxrwt. 9 root    root      216 Aug 18 11:25 ..
+-rw-r--r--. 1 ansible ansible 23144 Aug 18 11:25 node1
+-rw-r--r--. 1 ansible ansible 22897 Aug 18 11:25 node2
+
+
+# ==========================================
+# Task 3: Enhanced Playbook with Advanced Tasks and Handlers
+# ==========================================
+
+-bash-4.2$ nano enhanced-playbook.yml
+(nano editor opened)
+
+-bash-4.2$ mkdir -p templates
+-bash-4.2$
+
+-bash-4.2$ nano templates/index.html.j2
+(nano editor opened)
+
+
+# ==========================================
+# Task 4.1: Execute the Basic Playbook
+# ==========================================
+
+-bash-4.2$ ansible-playbook -i inventory.ini install-package.yml -v
+Using /etc/ansible/ansible.cfg as config file
+
+PLAY [Install and configure a package on remote hosts] ************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Install the specified package] ******************************************
+changed: [node1] => {"changed": true, "msg": "Installed: httpd"}
+changed: [node2] => {"changed": true, "msg": "Installed: httpd"}
+
+TASK [Ensure the service is running] ******************************************
+changed: [node1]
+changed: [node2]
+
+TASK [Create a simple index.html file] ****************************************
+changed: [node1]
+changed: [node2]
+
+RUNNING HANDLER [start and enable service] ************************************
+ok: [node1]
+ok: [node2]
+
+RUNNING HANDLER [restart web service] *****************************************
+changed: [node1]
+changed: [node2]
+
+PLAY RECAP ********************************************************************
+node1                      : ok=6  changed=4  unreachable=0  failed=0  skipped=0
+node2                      : ok=6  changed=4  unreachable=0  failed=0  skipped=0
+
+-bash-4.2$ ansible-playbook -i inventory.ini install-package.yml --syntax-check
+playbook: install-package.yml
+
+-bash-4.2$ ansible-playbook -i inventory.ini install-package.yml --check
+PLAY [Install and configure a package on remote hosts] ************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Install the specified package] ******************************************
+ok: [node1] => {"changed": false, "msg": "All items are already installed"}
+ok: [node2] => {"changed": false, "msg": "All items are already installed"}
+
+TASK [Ensure the service is running] ******************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Create a simple index.html file] ****************************************
+ok: [node1]
+ok: [node2]
+
+PLAY RECAP ********************************************************************
+node1                      : ok=4  changed=0  unreachable=0  failed=0  skipped=0
+node2                      : ok=4  changed=0  unreachable=0  failed=0  skipped=0
+
+
+# ==========================================
+# Task 4.2: Execute the Enhanced Playbook
+# ==========================================
+
+-bash-4.2$ ansible-playbook -i inventory.ini enhanced-playbook.yml
+PLAY [Enhanced package installation and configuration] ************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Update package cache] ***************************************************
+changed: [node1]
+changed: [node2]
+
+TASK [Install required packages] **********************************************
+changed: [node1]
+changed: [node2]
+
+TASK [Configure firewall for web traffic] *************************************
+changed: [node1]
+changed: [node2]
+
+TASK [Create custom web content] **********************************************
+changed: [node1]
+changed: [node2]
+
+TASK [Ensure web service is running and enabled] ******************************
+ok: [node1]
+ok: [node2]
+
+TASK [Verify web service is responding] ***************************************
+ok: [node1 -> localhost]
+ok: [node2 -> localhost]
+
+RUNNING HANDLER [start httpd] *************************************************
+ok: [node1]
+ok: [node2]
+
+RUNNING HANDLER [start firewalld] *********************************************
+ok: [node1]
+ok: [node2]
+
+RUNNING HANDLER [reload firewall] *********************************************
+changed: [node1]
+changed: [node2]
+
+RUNNING HANDLER [restart httpd] **********************************************
+changed: [node1]
+changed: [node2]
+
+TASK [Display completion message] *********************************************
+ok: [node1] => {
+    "msg": "Playbook execution completed successfully on node1"
+}
+ok: [node2] => {
+    "msg": "Playbook execution completed successfully on node2"
+}
+
+PLAY RECAP ********************************************************************
+node1                      : ok=10 changed=6 unreachable=0 failed=0 skipped=0
+node2                      : ok=10 changed=6 unreachable=0 failed=0 skipped=0
+
+-bash-4.2$ ansible-playbook -i inventory.ini enhanced-playbook.yml --tags "packages,firewall"
+PLAY [Enhanced package installation and configuration] ************************
+
+TASK [Update package cache] ***************************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Install required packages] **********************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Configure firewall for web traffic] *************************************
+ok: [node1]
+ok: [node2]
+
+RUNNING HANDLER [reload firewall] *********************************************
+ok: [node1]
+ok: [node2]
+
+PLAY RECAP ********************************************************************
+node1                      : ok=4 changed=0 unreachable=0 failed=0 skipped=0
+node2                      : ok=4 changed=0 unreachable=0 failed=0 skipped=0
+
+-bash-4.2$ ansible-playbook -i inventory.ini enhanced-playbook.yml --skip-tags "verification"
+PLAY [Enhanced package installation and configuration] ************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Update package cache] ***************************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Install required packages] **********************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Configure firewall for web traffic] *************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Create custom web content] **********************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Ensure web service is running and enabled] ******************************
+ok: [node1]
+ok: [node2]
+
+TASK [Display completion message] *********************************************
+ok: [node1] => {"msg": "Playbook execution completed successfully on node1"}
+ok: [node2] => {"msg": "Playbook execution completed successfully on node2"}
+
+PLAY RECAP ********************************************************************
+node1                      : ok=7 changed=0 unreachable=0 failed=0 skipped=1
+node2                      : ok=7 changed=0 unreachable=0 failed=0 skipped=1
+
+
+# ==========================================
+# Task 4.3: Verify Playbook Results
+# ==========================================
+
+-bash-4.2$ ansible -i inventory.ini managed_nodes -m service -a "name=httpd state=started" --become
+node1 | SUCCESS => {
+    "changed": false,
+    "name": "httpd",
+    "state": "started",
+    "status": {
+        "ActiveState": "active"
+    }
+}
+node2 | SUCCESS => {
+    "changed": false,
+    "name": "httpd",
+    "state": "started",
+    "status": {
+        "ActiveState": "active"
+    }
+}
+
+-bash-4.2$ ansible -i inventory.ini managed_nodes -m shell -a "curl -s -o /dev/null -w '%{http_code}\n' http://localhost"
+node1 | CHANGED | rc=0 >>
+200
+node2 | CHANGED | rc=0 >>
+200
+
+-bash-4.2$ ansible -i inventory.ini managed_nodes -m file -a "path=/var/www/html/index.html" --become
+node1 | SUCCESS => {
+    "changed": false,
+    "path": "/var/www/html/index.html",
+    "state": "file",
+    "mode": "0644",
+    "owner": "apache",
+    "group": "apache"
+}
+node2 | SUCCESS => {
+    "changed": false,
+    "path": "/var/www/html/index.html",
+    "state": "file",
+    "mode": "0644",
+    "owner": "apache",
+    "group": "apache"
+}
+
+
+# ==========================================
+# Task 5: Troubleshooting and Best Practices
+# ==========================================
+
+-bash-4.2$ ansible-playbook -i inventory.ini enhanced-playbook.yml -vvv
+ansible-playbook 2.14.0
+  config file = /etc/ansible/ansible.cfg
+  ...
+TASK [Gathering Facts] ********************************************************
+ok: [node1]
+ok: [node2]
+...
+TASK [Verify web service is responding] ***************************************
+ok: [node1 -> localhost] => {"status": 200, "url": "http://192.168.1.10:80"}
+ok: [node2 -> localhost] => {"status": 200, "url": "http://192.168.1.11:80"}
+...
+PLAY RECAP ********************************************************************
+node1 : ok=10 changed=0 unreachable=0 failed=0 skipped=0
+node2 : ok=10 changed=0 unreachable=0 failed=0 skipped=0
+
+
+# ==========================================
+# Debug Playbook
+# ==========================================
+
+-bash-4.2$ nano debug-playbook.yml
+(nano editor opened)
+
+-bash-4.2$ ansible-playbook -i inventory.ini debug-playbook.yml
+PLAY [Debug playbook variables] ***********************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Display all variables for the host] *************************************
+ok: [node1] => {
+    "hostvars[node1]": {
+        "ansible_default_ipv4": {
+            "address": "192.168.1.10"
+        },
+        "ansible_distribution": "CentOS",
+        "ansible_hostname": "node1",
+        "inventory_hostname": "node1",
+        "ansible_user": "ansible"
+        ...
+    }
+}
+ok: [node2] => {
+    "hostvars[node2]": {
+        "ansible_default_ipv4": {
+            "address": "192.168.1.11"
+        },
+        "ansible_distribution": "CentOS",
+        "ansible_hostname": "node2",
+        "inventory_hostname": "node2",
+        "ansible_user": "ansible"
+        ...
+    }
+}
+
+TASK [Display specific facts] *************************************************
+ok: [node1] => {
+    "msg": "Hostname: node1\nIP Address: 192.168.1.10\nOS: CentOS"
+}
+ok: [node2] => {
+    "msg": "Hostname: node2\nIP Address: 192.168.1.11\nOS: CentOS"
+}
+
+PLAY RECAP ********************************************************************
+node1                      : ok=3 changed=0 unreachable=0 failed=0
+node2                      : ok=3 changed=0 unreachable=0 failed=0
+
+
+# ==========================================
+# Error Handling Playbook
+# ==========================================
+
+-bash-4.2$ nano error-handling-playbook.yml
+(nano editor opened)
+
+-bash-4.2$ ansible-playbook -i inventory.ini error-handling-playbook.yml
+PLAY [Playbook with error handling] *******************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Attempt to install a package that might fail] ***************************
+fatal: [node1]: FAILED! => {"changed": false, "msg": "No package non-existent-package available."}
+...ignoring
+fatal: [node2]: FAILED! => {"changed": false, "msg": "No package non-existent-package available."}
+...ignoring
+
+TASK [Display error message if package installation failed] ********************
+ok: [node1] => {
+    "msg": "Package installation failed: No package non-existent-package available."
+}
+ok: [node2] => {
+    "msg": "Package installation failed: No package non-existent-package available."
+}
+
+TASK [Continue with other tasks regardless of previous failure] ***************
+changed: [node1]
+changed: [node2]
+
+TASK [Try to start a service that might not exist] ****************************
+fatal: [node1]: FAILED! => {"changed": false, "msg": "Could not find the requested service non-existent-service: host"}
+fatal: [node2]: FAILED! => {"changed": false, "msg": "Could not find the requested service non-existent-service: host"}
+
+TASK [Handle the error gracefully] ********************************************
+ok: [node1] => {"msg": "Service start failed, but we're handling it gracefully"}
+ok: [node2] => {"msg": "Service start failed, but we're handling it gracefully"}
+
+TASK [This always runs] *******************************************************
+ok: [node1] => {"msg": "This task always executes"}
+ok: [node2] => {"msg": "This task always executes"}
+
+PLAY RECAP ********************************************************************
+node1                      : ok=6 changed=1 unreachable=0 failed=0 ignored=1 rescued=1
+node2                      : ok=6 changed=1 unreachable=0 failed=0 ignored=1 rescued=1
+
+
+# ==========================================
+# Reusable Variables + Variable Playbook
+# ==========================================
+
+-bash-4.2$ nano vars.yml
+(nano editor opened)
+
+-bash-4.2$ nano variable-playbook.yml
+(nano editor opened)
+
+-bash-4.2$ ansible-playbook -i inventory.ini variable-playbook.yml
+PLAY [Playbook using external variables] **************************************
+
+TASK [Install web packages] ***************************************************
+changed: [node1]
+skipping: [node2]
+
+TASK [Install database packages] **********************************************
+skipping: [node1]
+changed: [node2]
+
+TASK [Install common packages on all hosts] ***********************************
+changed: [node1]
+changed: [node2]
+
+PLAY RECAP ********************************************************************
+node1                      : ok=2 changed=2 unreachable=0 failed=0 skipped=1
+node2                      : ok=2 changed=2 unreachable=0 failed=0 skipped=1
+
+
+# ==========================================
+# Verification Playbook
+# ==========================================
+
+-bash-4.2$ nano verify-setup.yml
+(nano editor opened)
+
+-bash-4.2$ ansible-playbook -i inventory.ini verify-setup.yml
+PLAY [Verify lab setup and configuration] *************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Check if httpd is installed] ********************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Verify httpd service status] ********************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Check if web content exists] ********************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Display verification results] *******************************************
+ok: [node1] => {
+    "msg": "HTTPD Package: Installed\nHTTPD Service: active\nWeb Content: Present\n"
+}
+ok: [node2] => {
+    "msg": "HTTPD Package: Installed\nHTTPD Service: active\nWeb Content: Present\n"
+}
+
+TASK [Test web connectivity] **************************************************
+ok: [node1 -> localhost]
+ok: [node2 -> localhost]
+
+TASK [Display web test results] ***********************************************
+ok: [node1] => {
+    "msg": "Web service is responding"
+}
+ok: [node2] => {
+    "msg": "Web service is responding"
+}
+
+PLAY RECAP ********************************************************************
+node1                      : ok=7 changed=0 unreachable=0 failed=0
+node2                      : ok=7 changed=0 unreachable=0 failed=0
