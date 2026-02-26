@@ -1,0 +1,5 @@
+# playbooks/lab5/host_vars/centos1.yml
+---
+custom_var: "host_specific_value"
+database_host: "host.specific.com"
+special_config: true
