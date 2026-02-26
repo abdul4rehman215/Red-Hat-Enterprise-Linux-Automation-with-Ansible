@@ -1,0 +1,14 @@
+---
+# Common variables for all servers
+timezone: "America/New_York"
+
+ntp_servers:
+  - "0.pool.ntp.org"
+  - "1.pool.ntp.org"
+
+# Security settings
+ssh_port: 22
+firewall_enabled: true
+
+# Monitoring
+log_retention_days: 30
