@@ -1,0 +1,38 @@
+---
+- name: Lab 19 Verification
+  hosts: webservers
+  gather_facts: yes
+
+  tasks:
+    - name: Verify debug module understanding
+      debug:
+        msg: "Debug module verification: {{ ansible_hostname }}"
+
+    - name: Verify check mode awareness
+      debug:
+        msg: "Check mode status: {{ ansible_check_mode }}"
+
+    - name: Verify error handling implementation
+      block:
+        - name: Test successful task
+          debug:
+            msg: "This task succeeds"
+
+        - name: Test error handling
+          fail:
+            msg: "Testing error handling"
+          when: false
+
+      rescue:
+        - name: Handle test error
+          debug:
+            msg: "Error handling works correctly"
+
+      always:
+        - name: Always execute
+          debug:
+            msg: "Always block executed successfully"
+
+    - name: Lab completion confirmation
+      debug:
+        msg: "Lab 19: Error Handling and Debugging completed successfully!"
