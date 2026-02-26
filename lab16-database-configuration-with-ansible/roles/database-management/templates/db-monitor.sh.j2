@@ -1,0 +1,17 @@
+#!/bin/bash
+echo "=== DB Monitor Report ==="
+echo "Date: $(date)"
+echo "Host: $(hostname)"
+echo ""
+
+echo "=== Top Processes (CPU) ==="
+ps -eo pid,comm,%cpu,%mem --sort=-%cpu | head -10
+echo ""
+
+echo "=== Listening DB Ports ==="
+ss -tuln | egrep '(:3306|:5432)' || true
+echo ""
+
+echo "=== Disk Usage ==="
+df -h
+echo ""
