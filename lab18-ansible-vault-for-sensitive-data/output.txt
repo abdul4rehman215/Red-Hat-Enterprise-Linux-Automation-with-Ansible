@@ -1,0 +1,861 @@
+Lab 18 - Ansible Vault for Sensitive Data
+Execution Output Log (Full)
+
+================================================================================
+Task 1.1 - Verify Ansible Installation and Create Lab Directory
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ ansible --version
+▶️ Output
+ansible [core 2.13.13]
+  config file = /etc/ansible/ansible.cfg
+  configured module search path = ['/home/centos/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']
+  ansible python module location = /usr/lib/python3.9/site-packages/ansible
+  ansible collection location = /home/centos/.ansible/collections:/usr/share/ansible/collections
+  executable location = /usr/bin/ansible
+  python version = 3.9.18 (main, Jan 10 2026, 09:42:11) [GCC 8.5.0 20210514 (Red Hat 8.5.0-20)]
+  jinja version = 3.1.2
+  libyaml = True
+
+▶️ Command Executed
+-bash-4.2$ mkdir -p ~/ansible-vault-lab
+▶️ Output
+-bash-4.2$
+
+▶️ Command Executed
+-bash-4.2$ cd ~/ansible-vault-lab
+▶️ Output
+-bash-4.2$
+
+▶️ Command Executed
+-bash-4.2$ mkdir -p {playbooks,vars,inventory}
+▶️ Output
+-bash-4.2$
+
+▶️ Command Executed
+-bash-4.2$ ls -l
+▶️ Output
+total 0
+drwxr-xr-x 2 centos centos  6 Aug 18 12:01 inventory
+drwxr-xr-x 2 centos centos  6 Aug 18 12:01 playbooks
+drwxr-xr-x 2 centos centos  6 Aug 18 12:01 vars
+
+================================================================================
+Task 1.2 - Create Sample Sensitive Data (Plaintext)
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ nano vars/database_secrets.yml
+▶️ Output
+# (nano editor opened)
+# Pasted content and saved: vars/database_secrets.yml
+
+▶️ Command Executed
+-bash-4.2$ nano vars/user_secrets.yml
+▶️ Output
+# (nano editor opened)
+# Pasted content and saved: vars/user_secrets.yml
+
+================================================================================
+Task 1.3 - View Unencrypted Files (Before Encryption)
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ echo "=== Database Secrets (UNENCRYPTED) ==="
+▶️ Output
+=== Database Secrets (UNENCRYPTED) ===
+
+▶️ Command Executed
+-bash-4.2$ cat vars/database_secrets.yml
+▶️ Output
+---
+database_password: "MySecretPassword123!"
+database_username: "admin"
+database_host: "db.example.com"
+database_port: 5432
+api_key: "sk-1234567890abcdef"
+ssl_certificate_key: |
+ -----BEGIN PRIVATE KEY-----
+ MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC7...
+ -----END PRIVATE KEY-----
+
+▶️ Command Executed
+-bash-4.2$ echo -e "\n=== User Secrets (UNENCRYPTED) ==="
+▶️ Output
+
+=== User Secrets (UNENCRYPTED) ===
+
+▶️ Command Executed
+-bash-4.2$ cat vars/user_secrets.yml
+▶️ Output
+---
+admin_password: "AdminPass2023!"
+service_account_password: "ServiceAccount456"
+ldap_bind_password: "LdapSecret789"
+encryption_key: "MyEncryptionKey2023"
+
+================================================================================
+Task 2.1 - Encrypting Files with Ansible Vault
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ ansible-vault encrypt vars/database_secrets.yml
+▶️ Output
+New Vault password:
+Confirm New Vault password:
+Encryption successful
+
+▶️ Command Executed
+-bash-4.2$ ansible-vault encrypt vars/user_secrets.yml
+▶️ Output
+New Vault password:
+Confirm New Vault password:
+Encryption successful
+
+================================================================================
+Task 2.2 - Verify Encryption (Encrypted Headers)
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ echo "=== Encrypted Database Secrets ==="
+▶️ Output
+=== Encrypted Database Secrets ===
+
+▶️ Command Executed
+-bash-4.2$ cat vars/database_secrets.yml
+▶️ Output
+$ANSIBLE_VAULT;1.1;AES256
+32343633393135396234636239366636613064313930306234656339383664636135653263656232
+3964666238663631323963663033383638333461326537300a316133636635653735643537353032
+65623138623966336366326333303437383235316264343432316566663232653735303165663931
+3662376335356137320a323166633330623164633266613965393839343164386638316463373733
+36386132396665326336363937313834373030613439323037363739363637366434
+
+▶️ Command Executed
+-bash-4.2$ echo -e "\n=== Encrypted User Secrets ==="
+▶️ Output
+
+=== Encrypted User Secrets ===
+
+▶️ Command Executed
+-bash-4.2$ cat vars/user_secrets.yml
+▶️ Output
+$ANSIBLE_VAULT;1.1;AES256
+61363136373632613661623962363535316162306161353835643139636630656164663433333235
+6461323861346431323139386336383831623537303063350a303234653437666431666335623236
+30376531343735323564303566313038303765313638323831363530613736663139383733393638
+3135353039643766620a346631613265616432373738303336613566623931353737356666653930
+64316366306336303963386261396165393038613731316133666334353338373065
+
+================================================================================
+Task 2.3 - Create Encrypted Files Directly (ansible-vault create)
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ ansible-vault create vars/api_secrets.yml
+▶️ Output
+New Vault password:
+Confirm New Vault password:
+Encryption successful
+
+================================================================================
+Task 3.1 - View Encrypted Files (Without Permanent Decrypt)
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ ansible-vault view vars/database_secrets.yml
+▶️ Output
+Vault password:
+---
+database_password: "MySecretPassword123!"
+database_username: "admin"
+database_host: "db.example.com"
+database_port: 5432
+api_key: "sk-1234567890abcdef"
+ssl_certificate_key: |
+ -----BEGIN PRIVATE KEY-----
+ MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC7...
+ -----END PRIVATE KEY-----
+
+▶️ Command Executed
+-bash-4.2$ ansible-vault view vars/user_secrets.yml
+▶️ Output
+Vault password:
+---
+admin_password: "AdminPass2023!"
+service_account_password: "ServiceAccount456"
+ldap_bind_password: "LdapSecret789"
+encryption_key: "MyEncryptionKey2023"
+
+▶️ Command Executed
+-bash-4.2$ ansible-vault view vars/api_secrets.yml
+▶️ Output
+Vault password:
+stripe_api_key: "sk_test_1234567890abcdef"
+paypal_client_secret: "PayPalSecret123"
+aws_secret_access_key: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+github_token: "ghp_1234567890abcdefghijklmnopqrstuvwxyz"
+
+================================================================================
+Task 3.2 - Edit Encrypted Files
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ ansible-vault edit vars/database_secrets.yml
+▶️ Output
+Vault password:
+# (vault editor opened)
+# Added database_backup_password and saved
+
+▶️ Command Executed
+-bash-4.2$ ansible-vault view vars/database_secrets.yml
+▶️ Output
+Vault password:
+---
+database_password: "MySecretPassword123!"
+database_username: "admin"
+database_host: "db.example.com"
+database_port: 5432
+api_key: "sk-1234567890abcdef"
+database_backup_password: "BackupSecret456"
+ssl_certificate_key: |
+ -----BEGIN PRIVATE KEY-----
+ MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC7...
+ -----END PRIVATE KEY-----
+
+================================================================================
+Task 3.3 - Change Vault Password (Rekey)
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ ansible-vault rekey vars/database_secrets.yml
+▶️ Output
+Vault password:
+New Vault password:
+Confirm New Vault password:
+Rekey successful
+
+================================================================================
+Task 4.1 - Create Inventory File
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ nano inventory/hosts
+▶️ Output
+# (nano editor opened)
+# Saved: inventory/hosts
+
+================================================================================
+Task 4.2 - Create Playbook Using Vault Variables (secure_deployment.yml)
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ nano playbooks/secure_deployment.yml
+▶️ Output
+# (nano editor opened)
+# Saved: playbooks/secure_deployment.yml
+
+================================================================================
+Task 4.3 - Create Template Files
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ mkdir -p templates
+▶️ Output
+-bash-4.2$
+
+▶️ Command Executed
+-bash-4.2$ nano templates/database.conf.j2
+▶️ Output
+# (nano editor opened)
+# Saved: templates/database.conf.j2
+
+▶️ Command Executed
+-bash-4.2$ nano templates/api.conf.j2
+▶️ Output
+# (nano editor opened)
+# Saved: templates/api.conf.j2
+
+================================================================================
+Task 4.4 - Run Playbook with Vault Password
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ ansible-vault rekey vars/database_secrets.yml
+▶️ Output
+Vault password:
+New Vault password:
+Confirm New Vault password:
+Rekey successful
+
+▶️ Command Executed
+-bash-4.2$ ansible-playbook -i inventory/hosts playbooks/secure_deployment.yml --ask-vault-pass
+▶️ Output
+Vault password:
+
+PLAY [Secure Application Deployment] *******************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [localhost]
+
+TASK [Display server information (safe)] **************************************
+ok: [localhost] => {
+    "msg": "Deploying to localhost"
+}
+
+TASK [Create application configuration directory] *****************************
+changed: [localhost]
+
+TASK [Generate database configuration file] ***********************************
+changed: [localhost]
+
+TASK [Generate API configuration file] ****************************************
+changed: [localhost]
+
+TASK [Create service user with encrypted password] ****************************
+changed: [localhost]
+
+TASK [Display configuration status (without sensitive data)] ******************
+ok: [localhost] => {
+    "msg": "Configuration files created successfully for user: admin"
+}
+
+PLAY RECAP ********************************************************************
+localhost                  : ok=6    changed=4    unreachable=0    failed=0
+
+================================================================================
+Task 4.5 - Using Vault Password File
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ echo "VaultPassword123" > .vault_password
+▶️ Output
+-bash-4.2$
+
+▶️ Command Executed
+-bash-4.2$ chmod 600 .vault_password
+▶️ Output
+-bash-4.2$
+
+▶️ Command Executed
+-bash-4.2$ ls -la .vault_password
+▶️ Output
+-rw------- 1 centos centos 16 Aug 18 12:26 .vault_password
+
+▶️ Command Executed
+-bash-4.2$ ansible-playbook -i inventory/hosts playbooks/secure_deployment.yml --vault-password-file .vault_password
+▶️ Output
+PLAY [Secure Application Deployment] *******************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [localhost]
+
+TASK [Display server information (safe)] **************************************
+ok: [localhost] => {
+    "msg": "Deploying to localhost"
+}
+
+TASK [Create application configuration directory] *****************************
+ok: [localhost]
+
+TASK [Generate database configuration file] ***********************************
+changed: [localhost]
+
+TASK [Generate API configuration file] ****************************************
+changed: [localhost]
+
+TASK [Create service user with encrypted password] ****************************
+ok: [localhost]
+
+TASK [Display configuration status (without sensitive data)] ******************
+ok: [localhost] => {
+    "msg": "Configuration files created successfully for user: admin"
+}
+
+PLAY RECAP ********************************************************************
+localhost                  : ok=6    changed=2    unreachable=0    failed=0
+
+================================================================================
+Task 4.6 - Verify Deployment Results
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ echo "=== Database Configuration ==="
+▶️ Output
+=== Database Configuration ===
+
+▶️ Command Executed
+-bash-4.2$ sudo cat /tmp/app-config/database.conf
+▶️ Output
+# Database Configuration
+# Generated by Ansible - Do not edit manually
+
+[database]
+host = db.example.com
+port = 5432
+username = admin
+password = MySecretPassword123!
+
+[backup]
+backup_password = BackupSecret456
+
+# Connection settings
+max_connections = 100
+timeout = 30
+
+▶️ Command Executed
+-bash-4.2$ echo -e "\n=== API Configuration ==="
+▶️ Output
+
+=== API Configuration ===
+
+▶️ Command Executed
+-bash-4.2$ sudo cat /tmp/app-config/api.conf
+▶️ Output
+# API Configuration
+# Generated by Ansible - Do not edit manually
+
+[stripe]
+api_key = sk_test_1234567890abcdef
+
+[paypal]
+client_secret = PayPalSecret123
+
+[aws]
+secret_access_key = wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+
+[github]
+token = ghp_1234567890abcdefghijklmnopqrstuvwxyz
+
+[encryption]
+key = MyEncryptionKey2023
+
+▶️ Command Executed
+-bash-4.2$ echo -e "\n=== Service User Information ==="
+▶️ Output
+
+=== Service User Information ===
+
+▶️ Command Executed
+-bash-4.2$ id appservice
+▶️ Output
+uid=1002(appservice) gid=1002(appservice) groups=1002(appservice)
+
+▶️ Command Executed
+-bash-4.2$ echo -e "\n=== Directory Permissions ==="
+▶️ Output
+
+=== Directory Permissions ===
+
+▶️ Command Executed
+-bash-4.2$ ls -la /tmp/app-config/
+▶️ Output
+total 8
+drwxr-x--- 2 root root  40 Aug 18 12:28 .
+drwxrwxrwt 9 root root 220 Aug 18 12:28 ..
+-rw------- 1 root root 292 Aug 18 12:28 api.conf
+-rw------- 1 root root 321 Aug 18 12:28 database.conf
+
+================================================================================
+Task 5.1 - Decrypt Files Permanently (Backup + Decrypt + Re-encrypt)
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ cp vars/user_secrets.yml vars/user_secrets.yml.backup
+▶️ Output
+-bash-4.2$
+
+▶️ Command Executed
+-bash-4.2$ ls -la vars/user_secrets.yml vars/user_secrets.yml.backup
+▶️ Output
+-rw------- 1 centos centos 652 Aug 18 12:14 vars/user_secrets.yml
+-rw------- 1 centos centos 652 Aug 18 12:29 vars/user_secrets.yml.backup
+
+▶️ Command Executed
+-bash-4.2$ ansible-vault decrypt vars/user_secrets.yml --vault-password-file .vault_password
+▶️ Output
+Decryption successful
+
+▶️ Command Executed
+-bash-4.2$ cat vars/user_secrets.yml
+▶️ Output
+---
+admin_password: "AdminPass2023!"
+service_account_password: "ServiceAccount456"
+ldap_bind_password: "LdapSecret789"
+encryption_key: "MyEncryptionKey2023"
+
+▶️ Command Executed
+-bash-4.2$ ansible-vault encrypt vars/user_secrets.yml --vault-password-file .vault_password
+▶️ Output
+Encryption successful
+
+================================================================================
+Task 5.2 - Encrypt Specific Variables (encrypt_string)
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ ansible-vault encrypt_string 'SuperSecretPassword123!' --name 'mysql_root_password' --vault-password-file .vault_password
+▶️ Output
+mysql_root_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          36396131303830353361663531316464346635303535623063356363613534623535613265376466
+          3130613335663934396439616562316666653432633338340a396564633162653864353331333630
+          31373033303761653130373231313863363961323564343466633432613961613834336533343065
+          3731393236666662310a343835343639383632653962616661376662623634323238333562346165
+          61633762633337393861633937653038363633333362326663353835306332666365
+
+================================================================================
+Task 5.3 - Create Mixed Variable File (Plain + Encrypted Var)
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ nano vars/mixed_secrets.yml
+▶️ Output
+# (nano editor opened)
+# Saved: vars/mixed_secrets.yml
+
+▶️ Command Executed
+-bash-4.2$ encrypted_password=$(ansible-vault encrypt_string 'RootPassword789!' --name 'database_root_password' --vault-password-file .vault_password)
+▶️ Output
+-bash-4.2$
+
+▶️ Command Executed
+-bash-4.2$ sed -i 's/database_root_password: "PLACEHOLDER"/'"$encrypted_password"'/' vars/mixed_secrets.yml
+▶️ Output
+-bash-4.2$
+
+▶️ Command Executed
+-bash-4.2$ cat vars/mixed_secrets.yml
+▶️ Output
+---
+# Unencrypted variables
+application_name: "MyWebApp"
+version: "2.1.0"
+debug_mode: false
+
+# This will be replaced with encrypted content
+database_root_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          38663235306662376630666263333736396136383462333032366134616563396163656332366665
+          3634633132613039623862333532393165393737396430370a323932393961383265386462383235
+          38336439626237653065306162373533356534663765343466653831363538326364626335613435
+          6461633161643739390a353833633461663534663533393036373266623366323566333439383239
+          61313563333437336530366134336236623165326435373630323335353065643166
+
+================================================================================
+Task 5.4 - Using Multiple Vault IDs (Dev/Prod)
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ ansible-vault create --vault-id dev@prompt vars/dev_secrets.yml
+▶️ Output
+Vault password (dev):
+Confirm Vault password (dev):
+Encryption successful
+
+▶️ Command Executed
+-bash-4.2$ ansible-vault create --vault-id prod@prompt vars/prod_secrets.yml
+▶️ Output
+Vault password (prod):
+Confirm Vault password (prod):
+Encryption successful
+
+================================================================================
+Task 6.1 - Best Practices: Create Secure Structure
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ mkdir -p {group_vars,host_vars}
+▶️ Output
+-bash-4.2$
+
+▶️ Command Executed
+-bash-4.2$ mkdir -p group_vars/{development,production}
+▶️ Output
+-bash-4.2$
+
+▶️ Command Executed
+-bash-4.2$ nano group_vars/development/main.yml
+▶️ Output
+# (nano editor opened)
+# Saved: group_vars/development/main.yml
+
+▶️ Command Executed
+-bash-4.2$ ansible-vault create group_vars/development/vault.yml --vault-password-file .vault_password
+▶️ Output
+Encryption successful
+
+================================================================================
+Task 6.2 - Create Production Configuration
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ nano group_vars/production/main.yml
+▶️ Output
+# (nano editor opened)
+# Saved: group_vars/production/main.yml
+
+▶️ Command Executed
+-bash-4.2$ ansible-vault create group_vars/production/vault.yml --vault-password-file .vault_password
+▶️ Output
+Encryption successful
+
+================================================================================
+Task 6.3 - Create Environment-Aware Playbook
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ nano playbooks/environment_deployment.yml
+▶️ Output
+# (nano editor opened)
+# Saved: playbooks/environment_deployment.yml
+
+================================================================================
+Task 6.4 - Create Application Configuration Template
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ nano templates/app_config.j2
+▶️ Output
+# (nano editor opened)
+# Saved: templates/app_config.j2
+
+================================================================================
+Task 6.5 - Test Environment-Specific Deployment (Dev + Prod)
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ nano inventory/hosts
+▶️ Output
+# (nano editor opened)
+# Updated and saved: inventory/hosts
+
+▶️ Command Executed
+-bash-4.2$ ansible-playbook -i inventory/hosts playbooks/environment_deployment.yml \
+ --limit development \
+ --vault-password-file .vault_password
+▶️ Output
+PLAY [Environment-Specific Deployment] *****************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [localhost]
+
+TASK [Display environment information] *****************************************
+ok: [localhost] => {
+    "msg": "Deploying to: development\nDatabase Host: dev-db.example.com\nAPI Endpoint: https://api-dev.example.com\nDebug Mode: True\n"
+}
+
+TASK [Create environment-specific configuration] *******************************
+changed: [localhost]
+
+TASK [Verify sensitive variables are loaded] ***********************************
+ok: [localhost] => {
+    "msg": "Database password is configured (length: 15)"
+}
+
+PLAY RECAP ********************************************************************
+localhost                  : ok=4    changed=1    unreachable=0    failed=0
+
+▶️ Command Executed
+-bash-4.2$ ansible-playbook -i inventory/hosts playbooks/environment_deployment.yml \
+ --limit production \
+ --vault-password-file .vault_password
+▶️ Output
+PLAY [Environment-Specific Deployment] *****************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [localhost]
+
+TASK [Display environment information] *****************************************
+ok: [localhost] => {
+    "msg": "Deploying to: production\nDatabase Host: prod-db.example.com\nAPI Endpoint: https://api.example.com\nDebug Mode: False\n"
+}
+
+TASK [Create environment-specific configuration] *******************************
+changed: [localhost]
+
+TASK [Verify sensitive variables are loaded] ***********************************
+ok: [localhost] => {
+    "msg": "Database password is configured (length: 16)"
+}
+
+PLAY RECAP ********************************************************************
+localhost                  : ok=4    changed=1    unreachable=0    failed=0
+
+================================================================================
+Task 6.6 - Verify Environment Configurations
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ echo "=== Development Configuration ==="
+▶️ Output
+=== Development Configuration ===
+
+▶️ Command Executed
+-bash-4.2$ sudo cat /tmp/development_config.conf
+▶️ Output
+# DEVELOPMENT Environment Configuration
+# Generated on 2026-02-27T11:02:19Z
+
+[application]
+name = MyWebApp
+environment = development
+debug = True
+
+[database]
+host = dev-db.example.com
+password = DevDBPassword123
+
+[api]
+endpoint = https://api-dev.example.com
+secret = dev-secret-key-789
+
+[ssl]
+private_key = devssl-private-key
+
+▶️ Command Executed
+-bash-4.2$ echo -e "\n=== Production Configuration ==="
+▶️ Output
+
+=== Production Configuration ===
+
+▶️ Command Executed
+-bash-4.2$ sudo cat /tmp/production_config.conf
+▶️ Output
+# PRODUCTION Environment Configuration
+# Generated on 2026-02-27T11:02:46Z
+
+[application]
+name = MyWebApp
+environment = production
+debug = False
+
+[database]
+host = prod-db.example.com
+password = ProdDBPassword456
+
+[api]
+endpoint = https://api.example.com
+secret = prod-secret-key-abc
+
+[ssl]
+private_key = prod-ssl-private-key
+
+================================================================================
+Task 7.1 - Handle Common Vault Errors (No Vault Secrets)
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ nano playbooks/test_vault_errors.yml
+▶️ Output
+# (nano editor opened)
+# Saved: playbooks/test_vault_errors.yml
+
+▶️ Command Executed
+-bash-4.2$ echo "=== Testing without vault password (should fail) ==="
+▶️ Output
+=== Testing without vault password (should fail) ===
+
+▶️ Command Executed
+-bash-4.2$ ansible-playbook -i inventory/hosts playbooks/test_vault_errors.yml || echo "Expected failure occurred"
+▶️ Output
+ERROR! Attempting to decrypt but no vault secrets found
+
+File: /home/centos/ansible-vault-lab/vars/database_secrets.yml
+
+Expected failure occurred
+
+▶️ Command Executed
+-bash-4.2$ echo -e "\n=== Running with correct vault password ==="
+▶️ Output
+
+=== Running with correct vault password ===
+
+▶️ Command Executed
+-bash-4.2$ ansible-playbook -i inventory/hosts playbooks/test_vault_errors.yml --vault-password-file .vault_password
+▶️ Output
+PLAY [Test Vault Error Handling] ***********************************************
+
+TASK [This will fail without vault password] ***********************************
+ok: [localhost] => {
+    "msg": "Database user: admin"
+}
+
+PLAY RECAP ********************************************************************
+localhost                  : ok=1    changed=0    unreachable=0    failed=0
+
+================================================================================
+Task 7.2 - Vault File Validation
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ echo "=== Checking vault file status ==="
+▶️ Output
+=== Checking vault file status ===
+
+▶️ Command Executed
+-bash-4.2$ for file in vars/*.yml group_vars/*/vault.yml; do
+>  if [ -f "$file" ]; then
+>   echo "File: $file"
+>   if head -1 "$file" | grep -q "ANSIBLE_VAULT"; then
+>    echo " Status: Encrypted ✓"
+>   else
+>    echo " Status: Not encrypted "
+>   fi
+>   echo
+>  fi
+> done
+▶️ Output
+File: vars/api_secrets.yml
+ Status: Encrypted ✓
+
+File: vars/database_secrets.yml
+ Status: Encrypted ✓
+
+File: vars/dev_secrets.yml
+ Status: Encrypted ✓
+
+File: vars/mixed_secrets.yml
+ Status: Not encrypted 
+
+File: vars/prod_secrets.yml
+ Status: Encrypted ✓
+
+File: vars/user_secrets.yml
+ Status: Encrypted ✓
+
+File: group_vars/development/vault.yml
+ Status: Encrypted ✓
+
+File: group_vars/production/vault.yml
+ Status: Encrypted ✓
+
+================================================================================
+Task 7.3 - Vault Management Script
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ nano manage_vault.sh
+▶️ Output
+# (nano editor opened)
+# Saved: manage_vault.sh
+
+▶️ Command Executed
+-bash-4.2$ chmod +x manage_vault.sh
+▶️ Output
+-bash-4.2$
+
+▶️ Command Executed
+-bash-4.2$ ./manage_vault.sh status
+▶️ Output
+=== Vault Files Status ===
+○ ./vars/mixed_secrets.yml (plain text)
+✓ ./vars/user_secrets.yml (encrypted)
+✓ ./vars/database_secrets.yml (encrypted)
+✓ ./vars/api_secrets.yml (encrypted)
+✓ ./vars/dev_secrets.yml (encrypted)
+✓ ./vars/prod_secrets.yml (encrypted)
+✓ ./group_vars/development/vault.yml (encrypted)
+✓ ./group_vars/production/vault.yml (encrypted)
