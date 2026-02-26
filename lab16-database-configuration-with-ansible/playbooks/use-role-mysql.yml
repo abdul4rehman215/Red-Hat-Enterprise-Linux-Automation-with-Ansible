@@ -1,0 +1,12 @@
+---
+- name: Apply database-management role (MySQL)
+  hosts: mysql_servers
+  become: yes
+  vars:
+    database_type: "mysql"
+    mysql_root_password: "SecureRootPass123!"
+    backup_enabled: true
+    monitoring_enabled: true
+    security_hardening: true
+  roles:
+    - database-management
