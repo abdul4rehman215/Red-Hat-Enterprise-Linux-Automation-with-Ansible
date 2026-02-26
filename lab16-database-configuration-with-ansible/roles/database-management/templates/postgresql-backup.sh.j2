@@ -1,0 +1,5 @@
+#!/bin/bash
+BACKUP_DIR="/opt/database-backups"
+DATE=$(date +%Y%m%d_%H%M%S)
+sudo -u postgres pg_dumpall | gzip > $BACKUP_DIR/postgresql_backup_$DATE.sql.gz
+find $BACKUP_DIR -name "postgresql_backup_*.sql.gz" -mtime +{{ backup_retention_days }} -delete
