@@ -1,0 +1,46 @@
+# playbooks/lab5/lab5-verification.yml
+---
+- name: Lab 5 Verification Test
+  hosts: all
+  gather_facts: yes
+  vars:
+    test_variable: "lab5_test"
+    test_number: 42
+
+  tasks:
+    - name: Test 1 - Variable Definition
+      assert:
+        that:
+          - test_variable == "lab5_test"
+          - test_number == 42
+        success_msg: "✓ Variable definition test passed"
+        fail_msg: "✗ Variable definition test failed"
+
+    - name: Test 2 - Facts Gathering
+      assert:
+        that:
+          - ansible_hostname is defined
+          - ansible_distribution is defined
+          - ansible_memtotal_mb is defined
+        success_msg: "✓ Facts gathering test passed"
+        fail_msg: "✗ Facts gathering test failed"
+
+    - name: Test 3 - Conditional Logic
+      set_fact:
+        os_test_passed: true
+      when: ansible_os_family in ['RedHat', 'Debian']
+
+    - name: Verify conditional test
+      assert:
+        that:
+          - os_test_passed is defined
+        success_msg: "✓ Conditional logic test passed"
+        fail_msg: "✗ Conditional logic test failed"
+
+    - name: Test 4 - Variable Combination
+      debug:
+        msg: "System {{ ansible_hostname }} running {{ ansible_distribution }} with test value {{ test_variable }}"
+
+    - name: Final verification message
+      debug:
+        msg: " All Lab 5 tests completed successfully!"
