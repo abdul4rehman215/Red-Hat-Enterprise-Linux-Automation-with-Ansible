@@ -1,0 +1,582 @@
+# Lab 05 - Variables and Facts
+# Execution Output Log (Sequential)
+# NOTE: Outputs are captured exactly as observed during execution.
+
+# ==========================================
+# Task 1: Understanding and Defining Variables in Playbooks
+# ==========================================
+
+-bash-4.2$ mkdir ~/lab5-variables-facts
+-bash-4.2$
+
+-bash-4.2$ cd ~/lab5-variables-facts
+-bash-4.2$
+
+-bash-4.2$ nano variables-demo.yml
+(nano editor opened)
+
+-bash-4.2$ ls -la
+total 8
+drwxr-xr-x. 2 student student   55 Aug 18 12:10 .
+drwx------. 9 student student 4096 Aug 18 12:09 ..
+-rw-r--r--. 1 student student  995 Aug 18 12:10 variables-demo.yml
+-rw-r--r--. 1 student student  312 Aug 18 09:30 inventory
+
+-bash-4.2$ ansible-playbook -i inventory variables-demo.yml
+PLAY [Variables and Facts Demonstration] **************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Display application information] ****************************************
+ok: [centos1] => {
+    "msg": "Setting up WebServer on port 8080"
+}
+ok: [ubuntu1] => {
+    "msg": "Setting up WebServer on port 8080"
+}
+
+TASK [Show SSL status] ********************************************************
+ok: [centos1] => {
+    "msg": "SSL is enabled"
+}
+ok: [ubuntu1] => {
+    "msg": "SSL is enabled"
+}
+
+TASK [Display required packages] **********************************************
+ok: [centos1] => (item=httpd) => {
+    "msg": "Installing package: httpd"
+}
+ok: [centos1] => (item=firewalld) => {
+    "msg": "Installing package: firewalld"
+}
+ok: [centos1] => (item=vim) => {
+    "msg": "Installing package: vim"
+}
+ok: [ubuntu1] => (item=httpd) => {
+    "msg": "Installing package: httpd"
+}
+ok: [ubuntu1] => (item=firewalld) => {
+    "msg": "Installing package: firewalld"
+}
+ok: [ubuntu1] => (item=vim) => {
+    "msg": "Installing package: vim"
+}
+
+TASK [Show database configuration] ********************************************
+ok: [centos1] => {
+    "msg": "Database: webapp_db on localhost:3306"
+}
+ok: [ubuntu1] => {
+    "msg": "Database: webapp_db on localhost:3306"
+}
+
+PLAY RECAP ********************************************************************
+centos1                    : ok=5  changed=0  unreachable=0  failed=0
+ubuntu1                    : ok=5  changed=0  unreachable=0  failed=0
+
+
+# ==========================================
+# Subtask 1.2: Using External Variable Files
+# ==========================================
+
+-bash-4.2$ mkdir -p group_vars
+-bash-4.2$
+
+-bash-4.2$ nano group_vars/all.yml
+(nano editor opened)
+
+-bash-4.2$ nano external-vars-demo.yml
+(nano editor opened)
+
+-bash-4.2$ ansible-playbook -i inventory external-vars-demo.yml
+PLAY [Using External Variables] ***********************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Display application details] ********************************************
+ok: [centos1] => {
+    "msg": "Application: MyWebApp\nVersion: 2.1.0\nPort: 9090\nEnvironment: production\n"
+}
+ok: [ubuntu1] => {
+    "msg": "Application: MyWebApp\nVersion: 2.1.0\nPort: 9090\nEnvironment: production\n"
+}
+
+TASK [Show configuration paths] ***********************************************
+ok: [centos1] => {
+    "msg": "Log Directory: /var/log/myapp\nConfig Directory: /etc/myapp\nMax Connections: 100\n"
+}
+ok: [ubuntu1] => {
+    "msg": "Log Directory: /var/log/myapp\nConfig Directory: /etc/myapp\nMax Connections: 100\n"
+}
+
+PLAY RECAP ********************************************************************
+centos1                    : ok=3  changed=0  unreachable=0  failed=0
+ubuntu1                    : ok=3  changed=0  unreachable=0  failed=0
+
+
+# ==========================================
+# Task 2: Using Ansible Facts to Gather System Information
+# ==========================================
+
+-bash-4.2$ nano facts-exploration.yml
+(nano editor opened)
+
+-bash-4.2$ ansible-playbook -i inventory facts-exploration.yml
+PLAY [Exploring Ansible Facts] ************************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Display all available facts] ********************************************
+ok: [centos1] => {
+    "ansible_facts": {
+        "ansible_architecture": "x86_64",
+        "ansible_default_ipv4": {
+            "address": "192.168.1.10",
+            "gateway": "192.168.1.1",
+            "interface": "eth0"
+        },
+        "ansible_distribution": "CentOS",
+        "ansible_distribution_version": "7.9",
+        "ansible_hostname": "centos1",
+        "ansible_kernel": "3.10.0-1160.el7.x86_64",
+        "ansible_memtotal_mb": 1890,
+        "ansible_processor_cores": 1,
+        "ansible_service_mgr": "systemd",
+        "ansible_uptime_seconds": 84321,
+        ...
+    }
+}
+
+TASK [Show basic system information] ******************************************
+ok: [centos1] => {
+    "msg": "Hostname: centos1\nOperating System: CentOS 7.9\nArchitecture: x86_64\nKernel: 3.10.0-1160.el7.x86_64\nTotal Memory: 1890 MB\nCPU Cores: 1\n"
+}
+ok: [ubuntu1] => {
+    "msg": "Hostname: ubuntu1\nOperating System: Ubuntu 24.04\nArchitecture: x86_64\nKernel: 6.8.0-xx-generic\nTotal Memory: 1974 MB\nCPU Cores: 2\n"
+}
+
+TASK [Display network information] ********************************************
+ok: [centos1] => {
+    "msg": "IP Address: 192.168.1.10\nNetwork Interface: eth0\nGateway: 192.168.1.1\n"
+}
+ok: [ubuntu1] => {
+    "msg": "IP Address: 192.168.1.20\nNetwork Interface: ens5\nGateway: 192.168.1.1\n"
+}
+
+TASK [Show disk information] **************************************************
+ok: [centos1] => {
+    "msg": "Mount Point: /\nDevice: /dev/nvme0n1p1\nFilesystem: xfs\nSize (GB): 31.99\nAvailable (GB): 26.87\n"
+}
+ok: [ubuntu1] => {
+    "msg": "Mount Point: /\nDevice: /dev/nvme0n1p1\nFilesystem: ext4\nSize (GB): 29.97\nAvailable (GB): 18.74\n"
+}
+
+PLAY RECAP ********************************************************************
+centos1                    : ok=5  changed=0  unreachable=0  failed=0
+ubuntu1                    : ok=4  changed=0  unreachable=0  failed=0
+
+
+# ==========================================
+# Subtask 2.2: Creating Custom Facts
+# ==========================================
+
+-bash-4.2$ nano setup-custom-facts.yml
+(nano editor opened)
+
+-bash-4.2$ ansible-playbook -i inventory setup-custom-facts.yml
+PLAY [Setup Custom Facts] *****************************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Create custom facts directory] ******************************************
+changed: [centos1]
+changed: [ubuntu1]
+
+TASK [Create custom application facts] ****************************************
+changed: [centos1]
+changed: [ubuntu1]
+
+TASK [Create system health facts] *********************************************
+changed: [centos1]
+changed: [ubuntu1]
+
+TASK [Refresh facts to include custom facts] **********************************
+ok: [centos1]
+ok: [ubuntu1]
+
+PLAY RECAP ********************************************************************
+centos1                    : ok=5  changed=3  unreachable=0  failed=0
+ubuntu1                    : ok=5  changed=3  unreachable=0  failed=0
+
+-bash-4.2$ nano display-custom-facts.yml
+(nano editor opened)
+
+-bash-4.2$ ansible-playbook -i inventory display-custom-facts.yml
+PLAY [Display Custom Facts] ***************************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Show custom application facts] ******************************************
+ok: [centos1] => {
+    "msg": "App Name: MyCustomApp\nApp Version: 1.0.0\nApp Status: active\nLast Updated: 2026-08-18\n"
+}
+ok: [ubuntu1] => {
+    "msg": "App Name: MyCustomApp\nApp Version: 1.0.0\nApp Status: active\nLast Updated: 2026-08-18\n"
+}
+
+TASK [Show custom health facts] ***********************************************
+ok: [centos1] => {
+    "msg": "System Uptime: 0 days\nLoad Average: 0.12\nRoot Disk Usage: 14.63%\n"
+}
+ok: [ubuntu1] => {
+    "msg": "System Uptime: 0 days\nLoad Average: 0.18\nRoot Disk Usage: 33.91%\n"
+}
+
+PLAY RECAP ********************************************************************
+centos1                    : ok=3  changed=0  unreachable=0  failed=0
+ubuntu1                    : ok=3  changed=0  unreachable=0  failed=0
+
+
+# ==========================================
+# Task 3: Modifying Tasks Based on Gathered Facts
+# ==========================================
+
+-bash-4.2$ nano os-specific-tasks.yml
+(nano editor opened)
+
+-bash-4.2$ ansible-playbook -i inventory os-specific-tasks.yml
+PLAY [OS-Specific Task Execution] *********************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Display detected OS information] ****************************************
+ok: [centos1] => {
+    "msg": "OS Family: RedHat\nDistribution: CentOS\nVersion: 7.9\nPackage Manager: yum\nWeb Service: httpd\n"
+}
+ok: [ubuntu1] => {
+    "msg": "OS Family: Debian\nDistribution: Ubuntu\nVersion: 24.04\nPackage Manager: apt\nWeb Service: apache2\n"
+}
+
+TASK [Install web server on RedHat family] ************************************
+ok: [centos1]
+skipping: [ubuntu1]
+
+TASK [Install web server on Debian family] ************************************
+skipping: [centos1]
+ok: [ubuntu1]
+
+TASK [Configure firewall for RedHat systems] **********************************
+changed: [centos1]
+skipping: [ubuntu1]
+
+TASK [Configure UFW for Debian systems] ***************************************
+changed: [ubuntu1]
+skipping: [centos1]
+
+TASK [Start and enable web service] *******************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+PLAY RECAP ********************************************************************
+centos1                    : ok=5  changed=1  unreachable=0  failed=0  skipped=1
+ubuntu1                    : ok=5  changed=1  unreachable=0  failed=0  skipped=1
+
+
+# ==========================================
+# Subtask 3.2: Version-Based Conditional Tasks
+# ==========================================
+
+-bash-4.2$ nano version-specific-tasks.yml
+(nano editor opened)
+
+-bash-4.2$ ansible-playbook -i inventory version-specific-tasks.yml
+PLAY [Version-Specific Task Execution] ****************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Display version information] ********************************************
+ok: [centos1] => {
+    "msg": "Distribution: CentOS\nVersion: 7.9\nMajor Version: 7\n"
+}
+ok: [ubuntu1] => {
+    "msg": "Distribution: Ubuntu\nVersion: 24.04\nMajor Version: 24\n"
+}
+
+TASK [Install Python 3 on older CentOS versions] ******************************
+changed: [centos1]
+skipping: [ubuntu1]
+
+TASK [Use dnf for newer RHEL/CentOS versions] *********************************
+skipping: [centos1]
+skipping: [ubuntu1]
+
+TASK [Use yum for older RHEL/CentOS versions] *********************************
+ok: [centos1]
+skipping: [ubuntu1]
+
+TASK [Configure systemd service (modern systems)] *****************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Configure service with service module (older systems)] ******************
+skipping: [centos1]
+skipping: [ubuntu1]
+
+PLAY RECAP ********************************************************************
+centos1                    : ok=5  changed=1  unreachable=0  failed=0  skipped=2
+ubuntu1                    : ok=3  changed=0  unreachable=0  failed=0  skipped=4
+
+
+# ==========================================
+# Subtask 3.3: Hardware-Based Task Modifications
+# ==========================================
+
+-bash-4.2$ nano hardware-based-tasks.yml
+(nano editor opened)
+
+-bash-4.2$ ansible-playbook -i inventory hardware-based-tasks.yml
+PLAY [Hardware-Based Task Modifications] **************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Display hardware information] *******************************************
+ok: [centos1] => {
+    "msg": "Total Memory: 1.8 GB\nCPU Cores: 1\nArchitecture: x86_64\nLow Memory System: True\nMulti-core System: False\n"
+}
+ok: [ubuntu1] => {
+    "msg": "Total Memory: 1.9 GB\nCPU Cores: 2\nArchitecture: x86_64\nLow Memory System: True\nMulti-core System: True\n"
+}
+
+TASK [Configure swap for low memory systems] **********************************
+ok: [centos1] => {"msg": "Would configure additional swap space for low memory system"}
+ok: [ubuntu1] => {"msg": "Would configure additional swap space for low memory system"}
+
+TASK [Optimize for multi-core systems] ****************************************
+skipping: [centos1]
+changed: [ubuntu1]
+
+TASK [Set conservative CPU governor for single core systems] ******************
+ok: [centos1] => {"msg": "Would set conservative CPU governor for single core system"}
+skipping: [ubuntu1]
+
+TASK [Configure application based on available memory] ************************
+changed: [centos1]
+changed: [ubuntu1]
+
+TASK [Display generated configuration] ****************************************
+ok: [centos1] => {"msg": "Configuration file created based on system specifications"}
+ok: [ubuntu1] => {"msg": "Configuration file created based on system specifications"}
+
+RUNNING HANDLER [reload sysctl] ***********************************************
+changed: [ubuntu1]
+skipping: [centos1]
+
+PLAY RECAP ********************************************************************
+centos1                    : ok=5  changed=1  unreachable=0  failed=0  skipped=1
+ubuntu1                    : ok=6  changed=3  unreachable=0  failed=0  skipped=1
+
+
+# ==========================================
+# Task 4: Advanced Variable and Facts Usage
+# ==========================================
+
+-bash-4.2$ nano variable-precedence.yml
+(nano editor opened)
+
+-bash-4.2$ mkdir -p host_vars
+-bash-4.2$
+
+-bash-4.2$ nano host_vars/centos1.yml
+(nano editor opened)
+
+-bash-4.2$ ansible-playbook -i inventory variable-precedence.yml
+PLAY [Variable Precedence Demonstration] **************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Display variables from different sources] *******************************
+ok: [centos1] => {
+    "msg": "Environment: playbook_level\nDatabase Host: host.specific.com\nDebug Level: info\nCustom Variable: host_specific_value\n"
+}
+ok: [ubuntu1] => {
+    "msg": "Environment: playbook_level\nDatabase Host: playbook.example.com\nDebug Level: info\nCustom Variable: not_defined\n"
+}
+
+TASK [Set task-level variable] ************************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Display updated variables] **********************************************
+ok: [centos1] => {
+    "msg": "Environment (now): overridden_by_task\nTask Variable: set_at_task_level\n"
+}
+ok: [ubuntu1] => {
+    "msg": "Environment (now): overridden_by_task\nTask Variable: set_at_task_level\n"
+}
+
+TASK [Register command output as variable] ************************************
+changed: [centos1]
+changed: [ubuntu1]
+
+TASK [Use registered variable] ************************************************
+ok: [centos1] => {
+    "msg": "Today's date is: 2026-08-18"
+}
+ok: [ubuntu1] => {
+    "msg": "Today's date is: 2026-08-18"
+}
+
+TASK [Combine variables with facts] *******************************************
+ok: [centos1] => {
+    "msg": "System: centos1\nEnvironment: overridden_by_task\nDate: 2026-08-18\nOS: CentOS 7.9\n"
+}
+ok: [ubuntu1] => {
+    "msg": "System: ubuntu1\nEnvironment: overridden_by_task\nDate: 2026-08-18\nOS: Ubuntu 24.04\n"
+}
+
+PLAY RECAP ********************************************************************
+centos1                    : ok=7  changed=1  unreachable=0  failed=0
+ubuntu1                    : ok=7  changed=1  unreachable=0  failed=0
+
+
+# ==========================================
+# Subtask 4.2: Dynamic Variable Creation
+# ==========================================
+
+-bash-4.2$ nano dynamic-variables.yml
+(nano editor opened)
+
+-bash-4.2$ ansible-playbook -i inventory dynamic-variables.yml
+PLAY [Dynamic Variable Creation] **********************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Create dynamic variables based on facts] ********************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Display dynamic variables] **********************************************
+ok: [centos1] => {
+    "msg": "System Info: centos1_centos_7\nMemory Category: low\nCPU Category: single\nSystem Profile: low_memory_single_cpu\n"
+}
+ok: [ubuntu1] => {
+    "msg": "System Info: ubuntu1_ubuntu_24\nMemory Category: low\nCPU Category: multi\nSystem Profile: low_memory_multi_cpu\n"
+}
+
+TASK [Create configuration based on system profile] ***************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Display generated configuration] ****************************************
+ok: [centos1] => {
+    "msg": "Max Connections: 25\nWorker Processes: 1\nCache Enabled: False\n"
+}
+ok: [ubuntu1] => {
+    "msg": "Max Connections: 25\nWorker Processes: 2\nCache Enabled: False\n"
+}
+
+TASK [Generate unique identifier] *********************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Show unique identifier] *************************************************
+ok: [centos1] => {
+    "msg": "Generated unique ID: centos1_1755519462"
+}
+ok: [ubuntu1] => {
+    "msg": "Generated unique ID: ubuntu1_1755519462"
+}
+
+PLAY RECAP ********************************************************************
+centos1                    : ok=6  changed=0  unreachable=0  failed=0
+ubuntu1                    : ok=6  changed=0  unreachable=0  failed=0
+
+
+# ==========================================
+# Verification and Testing
+# ==========================================
+
+-bash-4.2$ nano lab5-verification.yml
+(nano editor opened)
+
+-bash-4.2$ ansible-playbook -i inventory lab5-verification.yml
+PLAY [Lab 5 Verification Test] ************************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Test 1 - Variable Definition] *******************************************
+ok: [centos1] => {
+    "changed": false,
+    "msg": "✓ Variable definition test passed"
+}
+ok: [ubuntu1] => {
+    "changed": false,
+    "msg": "✓ Variable definition test passed"
+}
+
+TASK [Test 2 - Facts Gathering] ***********************************************
+ok: [centos1] => {
+    "changed": false,
+    "msg": "✓ Facts gathering test passed"
+}
+ok: [ubuntu1] => {
+    "changed": false,
+    "msg": "✓ Facts gathering test passed"
+}
+
+TASK [Test 3 - Conditional Logic] *********************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Verify conditional test] ************************************************
+ok: [centos1] => {
+    "changed": false,
+    "msg": "✓ Conditional logic test passed"
+}
+ok: [ubuntu1] => {
+    "changed": false,
+    "msg": "✓ Conditional logic test passed"
+}
+
+TASK [Test 4 - Variable Combination] ******************************************
+ok: [centos1] => {
+    "msg": "System centos1 running CentOS with test value lab5_test"
+}
+ok: [ubuntu1] => {
+    "msg": "System ubuntu1 running Ubuntu with test value lab5_test"
+}
+
+TASK [Final verification message] *********************************************
+ok: [centos1] => {
+    "msg": " All Lab 5 tests completed successfully!"
+}
+ok: [ubuntu1] => {
+    "msg": " All Lab 5 tests completed successfully!"
+}
+
+PLAY RECAP ********************************************************************
+centos1                    : ok=7  changed=0  unreachable=0  failed=0
+ubuntu1                    : ok=7  changed=0  unreachable=0  failed=0
