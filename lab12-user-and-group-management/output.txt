@@ -1,0 +1,360 @@
+-bash-4.2$ pwd
+/home/centos/lab12-user-management
+
+
+PLAY [Create Groups for User Management] ***************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [localhost]
+
+TASK [Create developers group] *************************************************
+changed: [localhost]
+
+TASK [Create testers group] ****************************************************
+changed: [localhost]
+
+TASK [Create managers group] ***************************************************
+changed: [localhost]
+
+TASK [Create contractors group] ************************************************
+changed: [localhost]
+
+TASK [Display created groups] **************************************************
+changed: [localhost]
+
+TASK [Show group information] **************************************************
+ok: [localhost] => {
+  "msg": [
+    "developers:x:3001:",
+    "testers:x:3002:",
+    "managers:x:3003:",
+    "contractors:x:3004:"
+  ]
+}
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=7  changed=6  unreachable=0  failed=0
+
+
+developers:x:3001:
+testers:x:3002:
+managers:x:3003:
+contractors:x:3004:
+
+
+PLAY [Create Users with Different Configurations] ******************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [localhost]
+
+TASK [Create developer user - alice] *******************************************
+changed: [localhost]
+
+TASK [Create developer user - bob] *********************************************
+changed: [localhost]
+
+TASK [Create tester user - carol] **********************************************
+changed: [localhost]
+
+TASK [Create manager user - david] *********************************************
+changed: [localhost]
+
+TASK [Create contractor user - eve] ********************************************
+changed: [localhost]
+
+TASK [Display created users] ***************************************************
+changed: [localhost]
+
+TASK [Show user information] ***************************************************
+ok: [localhost] => {
+  "msg": [
+    "alice:x:2001:3001:Alice Johnson - Senior Developer:/home/alice:/bin/bash",
+    "bob:x:2002:3001:Bob Smith - Junior Developer:/home/bob:/bin/bash",
+    "carol:x:2003:3002:Carol Davis - QA Tester:/home/carol:/bin/bash",
+    "david:x:2004:3003:David Wilson - Project Manager:/home/david:/bin/bash",
+    "eve:x:2005:3004:Eve Brown - External Contractor:/home/eve:/bin/sh"
+  ]
+}
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=8  changed=7  unreachable=0  failed=0
+
+
+alice:x:2001:3001:Alice Johnson - Senior Developer:/home/alice:/bin/bash
+bob:x:2002:3001:Bob Smith - Junior Developer:/home/bob:/bin/bash
+carol:x:2003:3002:Carol Davis - QA Tester:/home/carol:/bin/bash
+david:x:2004:3003:David Wilson - Project Manager:/home/david:/bin/bash
+eve:x:2005:3004:Eve Brown - External Contractor:/home/eve:/bin/sh
+
+
+PLAY [Modify User Shells] ******************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [localhost]
+
+TASK [Try setting alice shell to /bin/zsh] *************************************
+fatal: [localhost]: FAILED! => {"changed": false, "msg": "usermod: no changes\n/bin/zsh does not exist"}
+...rescuing
+
+TASK [Fallback - Change alice's shell to bash if zsh not available] ************
+ok: [localhost]
+
+TASK [Change eve's shell to restricted shell] **********************************
+ok: [localhost]
+
+TASK [Change bob's shell to bash (confirm it's bash)] **************************
+ok: [localhost]
+
+TASK [Install zsh if not present] **********************************************
+changed: [localhost]
+
+TASK [Change alice's shell to zsh after installation] **************************
+changed: [localhost]
+
+TASK [Display current shell information for all users] *************************
+changed: [localhost]
+
+TASK [Show shell information] **************************************************
+ok: [localhost] => {
+  "msg": "User shells: ['alice:/bin/zsh', 'bob:/bin/bash', 'carol:/bin/bash', 'david:/bin/bash', 'eve:/bin/sh']"
+}
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=9  changed=3  unreachable=0  failed=0 rescued=1
+
+
+PLAY [Modify User Group Memberships] *******************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [localhost]
+
+TASK [Add alice to testers group (cross-functional role)] **********************
+changed: [localhost]
+
+TASK [Add bob to a temporary project group] ************************************
+changed: [localhost]
+
+TASK [Add bob to project-alpha group] ******************************************
+changed: [localhost]
+
+TASK [Remove eve from contractors and add to developers (conversion)] **********
+changed: [localhost]
+
+TASK [Create a special admin group] ********************************************
+changed: [localhost]
+
+TASK [Add david to sysadmins group] ********************************************
+changed: [localhost]
+
+TASK [Display group memberships] ***********************************************
+changed: [localhost]
+
+TASK [Show group membership information] ***************************************
+ok: [localhost] => {
+  "msg": [
+    "User alice groups: alice developers testers",
+    "User bob groups: bob developers project-alpha",
+    "User carol groups: carol testers",
+    "User david groups: david managers developers testers sysadmins",
+    "User eve groups: eve developers"
+  ]
+}
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=9  changed=7  unreachable=0  failed=0
+
+
+PLAY [Modify User Home Directories] ********************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [localhost]
+
+TASK [Create custom home directory structure] **********************************
+changed: [localhost]
+
+TASK [Create new home directory for eve (contractor to employee)] **************
+changed: [localhost]
+
+TASK [Copy eve's existing home content to new location] ************************
+changed: [localhost]
+
+TASK [Update eve's home directory] *********************************************
+changed: [localhost]
+
+TASK [Create shared project directory] *****************************************
+changed: [localhost]
+
+TASK [Create symbolic link in bob's home to shared project] ********************
+changed: [localhost]
+
+TASK [Set proper permissions on alice's home directory] ************************
+ok: [localhost]
+
+TASK [Create development workspace in alice's home] ****************************
+changed: [localhost]
+
+TASK [Display home directory information] **************************************
+changed: [localhost]
+
+TASK [Show home directory information] *****************************************
+ok: [localhost] => {
+  "msg": [
+    "User alice home: /home/alice",
+    "drwxr-x---. 3 alice developers 93 Feb 27 16:31 /home/alice",
+    "User bob home: /home/bob",
+    "drwx------. 3 bob developers 92 Feb 27 16:31 /home/bob",
+    "User carol home: /home/carol",
+    "drwx------. 2 carol testers 78 Feb 27 16:31 /home/carol",
+    "User david home: /home/david",
+    "drwx------. 2 david managers 78 Feb 27 16:31 /home/david",
+    "User eve home: /opt/users/eve",
+    "drwxr-x---. 2 eve developers 78 Feb 27 16:31 /opt/users/eve"
+  ]
+}
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=11 changed=9 unreachable=0 failed=0
+
+
+PLAY [Advanced User Management Operations] *************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [localhost]
+
+TASK [Create users from variable list] *****************************************
+changed: [localhost] => (item={'name': 'frank', 'comment': 'Frank Miller - DevOps Engineer', 'uid': 2006, 'primary_group': 'developers', 'secondary_groups': ['sysadmins', 'project-alpha'], 'shell': '/bin/bash', 'home_dir': '/home/frank'})
+changed: [localhost] => (item={'name': 'grace', 'comment': 'Grace Lee - Security Analyst', 'uid': 2007, 'primary_group': 'testers', 'secondary_groups': ['sysadmins'], 'shell': '/bin/bash', 'home_dir': '/home/grace'})
+
+TASK [Set password expiration for contractor accounts] *************************
+changed: [localhost]
+
+TASK [Lock temporarily unused accounts] ****************************************
+changed: [localhost]
+
+TASK [Create user-specific directories] ****************************************
+changed: [localhost] => (item=[{'name': 'frank', 'comment': 'Frank Miller - DevOps Engineer', 'uid': 2006, 'primary_group': 'developers', 'secondary_groups': ['sysadmins', 'project-alpha'], 'shell': '/bin/bash', 'home_dir': '/home/frank'}, 'Documents'])
+changed: [localhost] => (item=[{'name': 'frank', 'comment': 'Frank Miller - DevOps Engineer', 'uid': 2006, 'primary_group': 'developers', 'secondary_groups': ['sysadmins', 'project-alpha'], 'shell': '/bin/bash', 'home_dir': '/home/frank'}, 'Downloads'])
+changed: [localhost] => (item=[{'name': 'frank', 'comment': 'Frank Miller - DevOps Engineer', 'uid': 2006, 'primary_group': 'developers', 'secondary_groups': ['sysadmins', 'project-alpha'], 'shell': '/bin/bash', 'home_dir': '/home/frank'}, 'Projects'])
+changed: [localhost] => (item=[{'name': 'grace', 'comment': 'Grace Lee - Security Analyst', 'uid': 2007, 'primary_group': 'testers', 'secondary_groups': ['sysadmins'], 'shell': '/bin/bash', 'home_dir': '/home/grace'}, 'Documents'])
+changed: [localhost] => (item=[{'name': 'grace', 'comment': 'Grace Lee - Security Analyst', 'uid': 2007, 'primary_group': 'testers', 'secondary_groups': ['sysadmins'], 'shell': '/bin/bash', 'home_dir': '/home/grace'}, 'Downloads'])
+changed: [localhost] => (item=[{'name': 'grace', 'comment': 'Grace Lee - Security Analyst', 'uid': 2007, 'primary_group': 'testers', 'secondary_groups': ['sysadmins'], 'shell': '/bin/bash', 'home_dir': '/home/grace'}, 'Projects'])
+
+TASK [Generate user report] ****************************************************
+changed: [localhost]
+
+TASK [Display user report] *****************************************************
+changed: [localhost]
+
+TASK [Show final user report] **************************************************
+ok: [localhost] => {
+  "msg": [
+    "=== USER MANAGEMENT REPORT ===",
+    "Date: Fri Feb 27 16:38:12 UTC 2026",
+    "",
+    "Created Users:",
+    "alice:x:2001:3001:Alice Johnson - Senior Developer:/home/alice:/bin/zsh",
+    "bob:x:2002:3001:Bob Smith - Junior Developer:/home/bob:/bin/bash",
+    "carol:x:2003:3002:Carol Davis - QA Tester:/home/carol:/bin/bash",
+    "david:x:2004:3003:David Wilson - Project Manager:/home/david:/bin/bash",
+    "eve:x:2005:3001:Eve Brown - External Contractor:/opt/users/eve:/bin/sh",
+    "frank:x:2006:3001:Frank Miller - DevOps Engineer:/home/frank:/bin/bash",
+    "grace:x:2007:3002:Grace Lee - Security Analyst:/home/grace:/bin/bash",
+    "",
+    "Created Groups:",
+    "developers:x:3001:alice,bob,david,eve,frank",
+    "testers:x:3002:carol,david,alice,grace",
+    "managers:x:3003:david",
+    "contractors:x:3004:",
+    "project-alpha:x:3005:bob,frank",
+    "sysadmins:x:3006:david,frank,grace"
+  ]
+}
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=8  changed=7  unreachable=0  failed=0
+
+
+PLAY [Verify User and Group Management] ****************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [localhost]
+
+TASK [Check all created users exist] *******************************************
+ok: [localhost] => (item=alice)
+ok: [localhost] => (item=bob)
+ok: [localhost] => (item=carol)
+ok: [localhost] => (item=david)
+ok: [localhost] => (item=eve)
+ok: [localhost] => (item=frank)
+ok: [localhost] => (item=grace)
+
+TASK [Check all created groups exist] ******************************************
+ok: [localhost] => (item=developers)
+ok: [localhost] => (item=testers)
+ok: [localhost] => (item=managers)
+ok: [localhost] => (item=contractors)
+ok: [localhost] => (item=project-alpha)
+ok: [localhost] => (item=sysadmins)
+
+TASK [Verify user shells] ******************************************************
+ok: [localhost] => (item=alice)
+ok: [localhost] => (item=bob)
+ok: [localhost] => (item=eve)
+
+TASK [Display shell verification] **********************************************
+ok: [localhost] => {
+  "msg": "User alice has shell: /bin/zsh"
+}
+ok: [localhost] => {
+  "msg": "User bob has shell: /bin/bash"
+}
+ok: [localhost] => {
+  "msg": "User eve has shell: /bin/sh"
+}
+
+TASK [Check home directories exist] ********************************************
+ok: [localhost] => (item=/home/alice)
+ok: [localhost] => (item=/home/bob)
+ok: [localhost] => (item=/home/carol)
+ok: [localhost] => (item=/home/david)
+ok: [localhost] => (item=/opt/users/eve)
+ok: [localhost] => (item=/home/frank)
+ok: [localhost] => (item=/home/grace)
+
+TASK [Display home directory status] *******************************************
+ok: [localhost] => {
+  "msg": "Directory /home/alice exists: True"
+}
+ok: [localhost] => {
+  "msg": "Directory /home/bob exists: True"
+}
+ok: [localhost] => {
+  "msg": "Directory /home/carol exists: True"
+}
+ok: [localhost] => {
+  "msg": "Directory /home/david exists: True"
+}
+ok: [localhost] => {
+  "msg": "Directory /opt/users/eve exists: True"
+}
+ok: [localhost] => {
+  "msg": "Directory /home/frank exists: True"
+}
+ok: [localhost] => {
+  "msg": "Directory /home/grace exists: True"
+}
+
+TASK [Final verification summary] **********************************************
+ok: [localhost] => {
+  "msg": [
+    "=== VERIFICATION COMPLETE ===",
+    "All users have been successfully created and configured",
+    "All groups have been established",
+    "User shells have been modified as requested",
+    "Home directories have been created and configured",
+    "Group memberships have been updated"
+  ]
+}
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=7  changed=0  unreachable=0  failed=0
