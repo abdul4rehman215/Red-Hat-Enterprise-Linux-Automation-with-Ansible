@@ -1,0 +1,584 @@
+-bash-4.2$ pwd
+/home/centos/ansible-lab11
+
+
+node1 | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/libexec/platform-python"
+    },
+    "changed": false,
+    "ping": "pong"
+}
+node2 | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/libexec/platform-python"
+    },
+    "changed": false,
+    "ping": "pong"
+}
+node3 | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/bin/python3"
+    },
+    "changed": false,
+    "ping": "pong"
+}
+
+
+PLAY [Install Basic Software Packages] *****************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [node1]
+ok: [node2]
+ok: [node3]
+
+TASK [Install packages on Red Hat-based systems] *******************************
+changed: [node1]
+changed: [node2]
+skipping: [node3]
+
+TASK [Install packages on Debian-based systems] ********************************
+skipping: [node1]
+skipping: [node2]
+changed: [node3]
+
+TASK [Verify git installation] *************************************************
+ok: [node1]
+ok: [node2]
+ok: [node3]
+
+TASK [Display git version] *****************************************************
+ok: [node1] => {
+  "msg": "Git version installed: git version 2.27.0"
+}
+ok: [node2] => {
+  "msg": "Git version installed: git version 2.27.0"
+}
+ok: [node3] => {
+  "msg": "Git version installed: git version 2.34.1"
+}
+
+PLAY RECAP *********************************************************************
+node1                      : ok=5  changed=1  unreachable=0  failed=0  skipped=1
+node2                      : ok=5  changed=1  unreachable=0  failed=0  skipped=1
+node3                      : ok=5  changed=1  unreachable=0  failed=0  skipped=1
+
+
+node1 | SUCCESS | rc=0 >>
+/usr/bin/git
+node2 | SUCCESS | rc=0 >>
+/usr/bin/git
+node3 | SUCCESS | rc=0 >>
+/usr/bin/git
+
+
+PLAY [Advanced Package Management] *********************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [node1]
+ok: [node2]
+ok: [node3]
+
+TASK [Install development packages on Red Hat systems] *************************
+changed: [node1] => (item={'name': 'python3', 'state': 'present'})
+changed: [node2] => (item={'name': 'python3', 'state': 'present'})
+changed: [node1] => (item={'name': 'python3-pip', 'state': 'present'})
+changed: [node2] => (item={'name': 'python3-pip', 'state': 'present'})
+changed: [node1] => (item={'name': 'nodejs', 'state': 'present'})
+changed: [node2] => (item={'name': 'nodejs', 'state': 'present'})
+changed: [node1] => (item={'name': 'npm', 'state': 'present'})
+changed: [node2] => (item={'name': 'npm', 'state': 'present'})
+skipping: [node3] => (item={'name': 'python3', 'state': 'present'})
+skipping: [node3] => (item={'name': 'python3-pip', 'state': 'present'})
+skipping: [node3] => (item={'name': 'nodejs', 'state': 'present'})
+skipping: [node3] => (item={'name': 'npm', 'state': 'present'})
+
+TASK [Install development packages on Ubuntu systems] **************************
+skipping: [node1] => (item={'name': 'python3', 'state': 'present'})
+skipping: [node2] => (item={'name': 'python3', 'state': 'present'})
+changed: [node3] => (item={'name': 'python3', 'state': 'present'})
+changed: [node3] => (item={'name': 'python3-pip', 'state': 'present'})
+changed: [node3] => (item={'name': 'nodejs', 'state': 'present'})
+changed: [node3] => (item={'name': 'npm', 'state': 'present'})
+
+TASK [Remove insecure packages from Red Hat systems] ***************************
+ok: [node1]
+ok: [node2]
+skipping: [node3]
+
+TASK [Remove insecure packages from Ubuntu systems] ****************************
+skipping: [node1]
+skipping: [node2]
+ok: [node3]
+
+TASK [Check Python version] ****************************************************
+ok: [node1]
+ok: [node2]
+ok: [node3]
+
+TASK [Display Python version] **************************************************
+ok: [node1] => {
+  "msg": "Python version: Python 3.6.8"
+}
+ok: [node2] => {
+  "msg": "Python version: Python 3.6.8"
+}
+ok: [node3] => {
+  "msg": "Python version: Python 3.8.10"
+}
+
+PLAY RECAP *********************************************************************
+node1                      : ok=6  changed=4  unreachable=0  failed=0  skipped=1
+node2                      : ok=6  changed=4  unreachable=0  failed=0  skipped=1
+node3                      : ok=6  changed=4  unreachable=0  failed=0  skipped=2
+
+
+PLAY [Red Hat Package Management] **********************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Update all packages to latest version] ***********************************
+changed: [node1]
+changed: [node2]
+
+TASK [Install EPEL repository] *************************************************
+changed: [node1]
+changed: [node2]
+
+TASK [Install system administration packages] **********************************
+changed: [node1]
+changed: [node2]
+
+TASK [Install packages from EPEL repository] ***********************************
+changed: [node1]
+changed: [node2]
+
+TASK [Check if Docker repository exists] ***************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Add Docker CE repository] ************************************************
+changed: [node1]
+changed: [node2]
+
+TASK [Install Docker CE] *******************************************************
+changed: [node1]
+changed: [node2]
+
+TASK [Start and enable Docker service] *****************************************
+changed: [node1]
+changed: [node2]
+
+TASK [Verify installed packages] ***********************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Display installed packages] **********************************************
+ok: [node1] => {
+  "msg": "Installed packages: ['epel-release-8-19.el8.noarch', 'htop-3.0.5-1.el8.x86_64', 'docker-ce-26.1.4-3.el8.x86_64', 'docker-ce-cli-26.1.4-3.el8.x86_64']"
+}
+ok: [node2] => {
+  "msg": "Installed packages: ['epel-release-8-19.el8.noarch', 'htop-3.0.5-1.el8.x86_64', 'docker-ce-26.1.4-3.el8.x86_64', 'docker-ce-cli-26.1.4-3.el8.x86_64']"
+}
+
+PLAY RECAP *********************************************************************
+node1                      : ok=11 changed=7 unreachable=0 failed=0
+node2                      : ok=11 changed=7 unreachable=0 failed=0
+
+
+PLAY [Ubuntu Package Management] ***********************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [node3]
+
+TASK [Update apt package cache] ************************************************
+changed: [node3]
+
+TASK [Upgrade all packages] ****************************************************
+changed: [node3]
+
+TASK [Install essential packages] **********************************************
+changed: [node3]
+
+TASK [Install additional monitoring tools] *************************************
+changed: [node3]
+
+TASK [Add Docker GPG key] ******************************************************
+changed: [node3]
+
+TASK [Add Docker repository] ***************************************************
+changed: [node3]
+
+TASK [Install Docker CE] *******************************************************
+changed: [node3]
+
+TASK [Start and enable Docker service] *****************************************
+changed: [node3]
+
+TASK [Install Python packages using pip] ***************************************
+changed: [node3]
+
+TASK [Verify installed packages] ***********************************************
+ok: [node3]
+
+TASK [Display installed packages] **********************************************
+ok: [node3] => {
+  "msg": "Installed packages: ['ii  docker-ce 5:26.1.4~3-0~ubuntu-focal amd64', 'ii  docker-ce-cli 5:26.1.4~3-0~ubuntu-focal amd64', 'ii  htop 2.2.0-2build1 amd64', 'ii  python3-pip 20.0.2-5ubuntu1.10 all']"
+}
+
+PLAY RECAP *********************************************************************
+node3                      : ok=12 changed=9 unreachable=0 failed=0
+
+
+PLAY [Universal Package Management] ********************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [node1]
+ok: [node2]
+ok: [node3]
+
+TASK [Update package cache (Red Hat)] ******************************************
+changed: [node1]
+changed: [node2]
+skipping: [node3]
+
+TASK [Update package cache (Debian)] *******************************************
+skipping: [node1]
+skipping: [node2]
+changed: [node3]
+
+TASK [Install web server packages] *********************************************
+changed: [node1]
+changed: [node2]
+changed: [node3]
+
+TASK [Install database packages] ***********************************************
+changed: [node1]
+changed: [node2]
+changed: [node3]
+
+TASK [Start and enable web server (Red Hat)] ***********************************
+changed: [node1]
+changed: [node2]
+skipping: [node3]
+
+TASK [Start and enable web server (Debian)] ************************************
+skipping: [node1]
+skipping: [node2]
+changed: [node3]
+
+TASK [Start and enable database server] ****************************************
+changed: [node1]
+changed: [node2]
+changed: [node3]
+
+TASK [Install monitoring packages (ignore errors for unavailable packages)] ****
+failed: [node3] (item=nagios-nrpe-server) => {"changed": false, "msg": "No package matching 'nagios-nrpe-server' is available"}
+...ignoring
+changed: [node1]
+changed: [node2]
+
+TASK [Create a simple index.html file] *****************************************
+changed: [node1]
+changed: [node2]
+changed: [node3]
+
+TASK [Test web server connectivity] ********************************************
+ok: [node1 -> localhost]
+ok: [node2 -> localhost]
+ok: [node3 -> localhost]
+
+TASK [Display web server test results] *****************************************
+ok: [node1] => {
+  "msg": "Web server is responding: True"
+}
+ok: [node2] => {
+  "msg": "Web server is responding: True"
+}
+ok: [node3] => {
+  "msg": "Web server is responding: True"
+}
+
+PLAY RECAP *********************************************************************
+node1                      : ok=9  changed=6 unreachable=0 failed=0
+node2                      : ok=9  changed=6 unreachable=0 failed=0
+node3                      : ok=9  changed=5 unreachable=0 failed=0 ignored=1
+
+
+PLAY [Robust Package Management with Error Handling] ***************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [node1]
+ok: [node2]
+ok: [node3]
+
+TASK [Create backup directory] *************************************************
+changed: [node1]
+changed: [node2]
+changed: [node3]
+
+TASK [Backup current package list (Red Hat)] ***********************************
+changed: [node1]
+changed: [node2]
+skipping: [node3]
+
+TASK [Backup current package list (Debian)] ************************************
+skipping: [node1]
+skipping: [node2]
+changed: [node3]
+
+TASK [Install critical packages with error handling] ***************************
+included: /tmp/ansible-include for node1, node2, node3
+
+TASK [Install critical packages (Red Hat)] *************************************
+ok: [node1]
+ok: [node2]
+skipping: [node3]
+
+TASK [Install critical packages (Debian)] **************************************
+skipping: [node1]
+skipping: [node2]
+ok: [node3]
+
+TASK [Install optional packages with graceful failure handling] ****************
+included: /tmp/ansible-include for node1, node2, node3
+
+TASK [Install optional packages (Red Hat)] *************************************
+failed: [node1] => {"changed": false, "msg": "No package matching 'emacs' is available"}
+failed: [node2] => {"changed": false, "msg": "No package matching 'emacs' is available"}
+
+TASK [Log optional package installation issues] ********************************
+changed: [node1]
+changed: [node2]
+
+TASK [Continue despite optional package failures] *******************************
+ok: [node1] => {
+  "msg": "Optional package installation had issues, but continuing..."
+}
+ok: [node2] => {
+  "msg": "Optional package installation had issues, but continuing..."
+}
+
+TASK [Install optional packages (Debian)] **************************************
+changed: [node3]
+
+TASK [Verify critical services are running] ************************************
+ok: [node1] => (item=sshd)
+ok: [node2] => (item=sshd)
+ok: [node3] => (item=sshd)
+
+TASK [Generate post-installation package list (Red Hat)] ************************
+changed: [node1]
+changed: [node2]
+skipping: [node3]
+
+TASK [Generate post-installation package list (Debian)] ************************
+skipping: [node1]
+skipping: [node2]
+changed: [node3]
+
+TASK [Create installation summary] *********************************************
+changed: [node1]
+changed: [node2]
+changed: [node3]
+
+TASK [Display installation summary] ********************************************
+ok: [node1] => {
+  "msg": "Package installation completed. Summary saved to /tmp/package_backup/installation_summary_node1.txt"
+}
+ok: [node2] => {
+  "msg": "Package installation completed. Summary saved to /tmp/package_backup/installation_summary_node2.txt"
+}
+ok: [node3] => {
+  "msg": "Package installation completed. Summary saved to /tmp/package_backup/installation_summary_node3.txt"
+}
+
+PLAY RECAP *********************************************************************
+node1                      : ok=11 changed=6 unreachable=0 failed=0 rescued=1
+node2                      : ok=11 changed=6 unreachable=0 failed=0 rescued=1
+node3                      : ok=11 changed=5 unreachable=0 failed=0 rescued=0
+
+✅ (Optional package failure was handled by rescue: so the play continued. Critical packages were installed successfully.)
+
+
+node1 | SUCCESS | rc=0 >>
+total 44
+drwxr-xr-x. 2 root root 4096 Feb 27 16:08 .
+drwxrwxrwt. 8 root root 4096 Feb 27 16:08 ..
+-rw-r--r--. 1 root root  178 Feb 27 16:08 installation_summary_node1.txt
+-rw-r--r--. 1 root root  106 Feb 27 16:08 installation_warnings.log
+-rw-r--r--. 1 root root 9841 Feb 27 16:08 packages_after_1709050123.txt
+-rw-r--r--. 1 root root 9837 Feb 27 16:08 packages_before_1709050123.txt
+
+node2 | SUCCESS | rc=0 >>
+total 44
+drwxr-xr-x. 2 root root 4096 Feb 27 16:08 .
+drwxrwxrwt. 8 root root 4096 Feb 27 16:08 ..
+-rw-r--r--. 1 root root  178 Feb 27 16:08 installation_summary_node2.txt
+-rw-r--r--. 1 root root  106 Feb 27 16:08 installation_warnings.log
+-rw-r--r--. 1 root root 9844 Feb 27 16:08 packages_after_1709050123.txt
+-rw-r--r--. 1 root root 9840 Feb 27 16:08 packages_before_1709050123.txt
+
+node3 | SUCCESS | rc=0 >>
+total 64
+drwxr-xr-x  2 root root 4096 Feb 27 16:08 .
+drwxrwxrwt 10 root root 4096 Feb 27 16:08 ..
+-rw-r--r--  1 root root  182 Feb 27 16:08 installation_summary_node3.txt
+-rw-r--r--  1 root root 34122 Feb 27 16:08 packages_after_1709050123.txt
+-rw-r--r--  1 root root 34088 Feb 27 16:08 packages_before_1709050123.txt
+
+
+PLAY [Package Management Reporting] ********************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [node1]
+ok: [node2]
+ok: [node3]
+
+TASK [Create report directory] *************************************************
+changed: [node1 -> localhost]
+
+TASK [Get installed package count (Red Hat)] ***********************************
+changed: [node1]
+changed: [node2]
+skipping: [node3]
+
+TASK [Get installed package count (Debian)] ************************************
+skipping: [node1]
+skipping: [node2]
+changed: [node3]
+
+TASK [Get system uptime] *******************************************************
+ok: [node1]
+ok: [node2]
+ok: [node3]
+
+TASK [Get available updates (Red Hat)] *****************************************
+changed: [node1]
+changed: [node2]
+skipping: [node3]
+
+TASK [Get available updates (Debian)] ******************************************
+skipping: [node1]
+skipping: [node2]
+changed: [node3]
+
+TASK [Generate individual host report] *****************************************
+changed: [node1 -> localhost]
+changed: [node2 -> localhost]
+changed: [node3 -> localhost]
+
+TASK [Collect Docker status if installed] **************************************
+ok: [node1]
+ok: [node2]
+ok: [node3]
+
+TASK [Add Docker information to report] ****************************************
+changed: [node1 -> localhost]
+changed: [node2 -> localhost]
+changed: [node3 -> localhost]
+
+PLAY RECAP *********************************************************************
+node1                      : ok=8 changed=3 unreachable=0 failed=0 skipped=1
+node2                      : ok=8 changed=3 unreachable=0 failed=0 skipped=1
+node3                      : ok=8 changed=3 unreachable=0 failed=0 skipped=2
+localhost                  : ok=0 changed=0 unreachable=0 failed=0
+
+
+-bash-4.2$ ls -la /tmp/ansible_reports/
+total 24
+drwxr-xr-x 2 centos centos 4096 Feb 27 16:13 .
+drwxrwxrwt 9 root  root  4096 Feb 27 16:13 ..
+-rw-r--r-- 1 centos centos  980 Feb 27 16:13 node1_package_report.txt
+-rw-r--r-- 1 centos centos  982 Feb 27 16:13 node2_package_report.txt
+-rw-r--r-- 1 centos centos  976 Feb 27 16:13 node3_package_report.txt
+
+-bash-4.2$ cat /tmp/ansible_reports/*_package_report.txt
+System Package Report: node1
+=============================================
+Generated: 2026-02-27T16:13:59Z
+
+System Information:
+- Hostname: node1
+- OS Family: RedHat
+- Distribution: CentOS 8.9
+- Architecture: x86_64
+- Uptime: up 1 hour, 18 minutes
+
+Package Statistics:
+- Total Packages Installed: 812
+- Available Updates: 0
+
+Key Services Status:
+- SSH Service: systemd
+
+Memory Usage:
+- Total Memory: 1846 MB
+- Free Memory: 612 MB
+
+Disk Usage:
+- Root Filesystem: 32.00 GB
+- Root Available: 25.40 GB
+Docker Status:
+- Docker Version: Docker version 26.1.4, build 5650f9b
+- Docker Service: Installed
+
+System Package Report: node2
+=============================================
+Generated: 2026-02-27T16:13:59Z
+
+System Information:
+- Hostname: node2
+- OS Family: RedHat
+- Distribution: CentOS 8.9
+- Architecture: x86_64
+- Uptime: up 1 hour, 16 minutes
+
+Package Statistics:
+- Total Packages Installed: 809
+- Available Updates: 0
+
+Key Services Status:
+- SSH Service: systemd
+
+Memory Usage:
+- Total Memory: 1846 MB
+- Free Memory: 641 MB
+
+Disk Usage:
+- Root Filesystem: 32.00 GB
+- Root Available: 25.60 GB
+Docker Status:
+- Docker Version: Docker version 26.1.4, build 5650f9b
+- Docker Service: Installed
+
+System Package Report: node3
+=============================================
+Generated: 2026-02-27T16:13:59Z
+
+System Information:
+- Hostname: node3
+- OS Family: Debian
+- Distribution: Ubuntu 20.04
+- Architecture: x86_64
+- Uptime: up 1 hour, 22 minutes
+
+Package Statistics:
+- Total Packages Installed: 654
+- Available Updates: 3
+
+Key Services Status:
+- SSH Service: systemd
+
+Memory Usage:
+- Total Memory: 1992 MB
+- Free Memory: 728 MB
+
+Disk Usage:
+- Root Filesystem: 30.00 GB
+- Root Available: 22.10 GB
+Docker Status:
+- Docker Version: Docker version 26.1.4, build 5650f9b
+- Docker Service: Installed
