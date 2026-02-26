@@ -1,0 +1,772 @@
+PLAY [Configure Database Servers] **********************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [db1]
+ok: [db2]
+
+TASK [Install MySQL server] ****************************************************
+ok: [db1]
+ok: [db2]
+
+TASK [Start and enable MySQL service] ******************************************
+ok: [db1]
+ok: [db2]
+
+TASK [Set MySQL root password] *************************************************
+ok: [db1]
+ok: [db2]
+
+TASK [Create application database] *********************************************
+ok: [db1]
+ok: [db2]
+
+TASK [Create application user] *************************************************
+ok: [db1]
+ok: [db2]
+
+PLAY [Configure Web Servers] ***************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [web1]
+ok: [web2]
+
+TASK [Install Apache web server] ***********************************************
+ok: [web1]
+ok: [web2]
+
+TASK [Create web user] *********************************************************
+ok: [web1]
+ok: [web2]
+
+TASK [Start and enable Apache service] *****************************************
+ok: [web1]
+ok: [web2]
+
+TASK [Configure firewall for HTTP] *********************************************
+ok: [web1]
+ok: [web2]
+
+PLAY [Deploy Application] ******************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [web1]
+ok: [web2]
+
+TASK [Create application directory] ********************************************
+ok: [web1]
+ok: [web2]
+
+TASK [Deploy sample PHP application] *******************************************
+ok: [web1]
+ok: [web2]
+
+PLAY RECAP *********************************************************************
+db1                        : ok=6  changed=0  unreachable=0  failed=0
+db2                        : ok=6  changed=0  unreachable=0  failed=0
+web1                       : ok=7  changed=0  unreachable=0  failed=0
+web2                       : ok=7  changed=0  unreachable=0  failed=0
+
+
+PLAY [Configure Database Servers] **********************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [db1]
+ok: [db2]
+
+TASK [Install MySQL server] ****************************************************
+changed: [db1]
+changed: [db2]
+
+TASK [Start and enable MySQL service] ******************************************
+changed: [db1]
+changed: [db2]
+
+TASK [Set MySQL root password] *************************************************
+changed: [db1]
+changed: [db2]
+
+TASK [Create application database] *********************************************
+changed: [db1]
+changed: [db2]
+
+TASK [Create application user] *************************************************
+changed: [db1]
+changed: [db2]
+
+PLAY [Configure Web Servers] ***************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [web1]
+ok: [web2]
+
+TASK [Install Apache web server] ***********************************************
+changed: [web1]
+changed: [web2]
+
+TASK [Create web user] *********************************************************
+changed: [web1]
+changed: [web2]
+
+TASK [Start and enable Apache service] *****************************************
+changed: [web1]
+changed: [web2]
+
+TASK [Configure firewall for HTTP] *********************************************
+changed: [web1]
+changed: [web2]
+
+PLAY [Deploy Application] ******************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [web1]
+ok: [web2]
+
+TASK [Create application directory] ********************************************
+changed: [web1]
+changed: [web2]
+
+TASK [Deploy sample PHP application] *******************************************
+changed: [web1]
+changed: [web2]
+
+PLAY RECAP *********************************************************************
+db1                        : ok=6  changed=5  unreachable=0  failed=0
+db2                        : ok=6  changed=5  unreachable=0  failed=0
+web1                       : ok=7  changed=5  unreachable=0  failed=0
+web2                       : ok=7  changed=5  unreachable=0  failed=0
+
+
+PLAY [Pre-deployment Tasks] ****************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [web1]
+ok: [web2]
+ok: [db1]
+ok: [db2]
+
+TASK [Update system packages] **************************************************
+changed: [web1]
+changed: [web2]
+changed: [db1]
+changed: [db2]
+
+TASK [Install common packages] *************************************************
+changed: [web1]
+changed: [web2]
+changed: [db1]
+changed: [db2]
+
+TASK [Set timezone] ************************************************************
+changed: [web1]
+changed: [web2]
+changed: [db1]
+changed: [db2]
+
+TASK [Start and enable firewalld] **********************************************
+changed: [web1]
+changed: [web2]
+changed: [db1]
+changed: [db2]
+
+PLAY [Configure Database Servers] **********************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [db1]
+ok: [db2]
+
+TASK [Check available disk space] **********************************************
+ok: [db1]
+ok: [db2]
+
+TASK [Display disk space] ******************************************************
+ok: [db1] => {
+    "disk_space.stdout_lines": [
+        "Filesystem      Size  Used Avail Use% Mounted on",
+        "/dev/nvme0n1p1   32G  5.2G   27G  17% /"
+    ]
+}
+ok: [db2] => {
+    "disk_space.stdout_lines": [
+        "Filesystem      Size  Used Avail Use% Mounted on",
+        "/dev/nvme0n1p1   32G  5.1G   27G  16% /"
+    ]
+}
+
+TASK [mysql : Install MySQL packages] ******************************************
+changed: [db1]
+changed: [db2]
+
+TASK [mysql : Start and enable MySQL service] **********************************
+changed: [db1]
+changed: [db2]
+
+TASK [mysql : Set MySQL root password] *****************************************
+changed: [db1]
+changed: [db2]
+
+TASK [mysql : Create MySQL configuration file] *********************************
+changed: [db1]
+changed: [db2]
+
+TASK [mysql : Create application database] *************************************
+changed: [db1]
+changed: [db2]
+
+TASK [mysql : Create application user] *****************************************
+changed: [db1]
+changed: [db2]
+
+TASK [mysql : Configure firewall for MySQL] ************************************
+changed: [db1]
+changed: [db2]
+
+RUNNING HANDLER [mysql : restart mysql] ****************************************
+changed: [db1]
+changed: [db2]
+
+TASK [Verify MySQL is running] *************************************************
+ok: [db1]
+ok: [db2]
+
+TASK [Test MySQL connection] ***************************************************
+ok: [db1]
+ok: [db2]
+
+TASK [Display MySQL status] ****************************************************
+ok: [db1] => {
+  "msg": "MySQL service is active and database connection is working"
+}
+ok: [db2] => {
+  "msg": "MySQL service is active and database connection is working"
+}
+
+PLAY RECAP *********************************************************************
+db1                        : ok=14 changed=10 unreachable=0 failed=0
+db2                        : ok=14 changed=10 unreachable=0 failed=0
+web1                       : ok=5  changed=4  unreachable=0 failed=0
+web2                       : ok=5  changed=4  unreachable=0 failed=0
+
+
+PLAY [Pre-deployment Tasks] ****************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [web1]
+ok: [web2]
+ok: [db1]
+ok: [db2]
+
+TASK [Update system packages] **************************************************
+ok: [web1]
+ok: [web2]
+ok: [db1]
+ok: [db2]
+
+TASK [Install common packages] *************************************************
+ok: [web1]
+ok: [web2]
+ok: [db1]
+ok: [db2]
+
+TASK [Set timezone] ************************************************************
+ok: [web1]
+ok: [web2]
+ok: [db1]
+ok: [db2]
+
+TASK [Start and enable firewalld] **********************************************
+ok: [web1]
+ok: [web2]
+ok: [db1]
+ok: [db2]
+
+PLAY [Configure Database Servers] **********************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [db1]
+ok: [db2]
+
+TASK [Check available disk space] **********************************************
+ok: [db1]
+ok: [db2]
+
+TASK [Display disk space] ******************************************************
+ok: [db1] => {
+    "disk_space.stdout_lines": [
+        "Filesystem      Size  Used Avail Use% Mounted on",
+        "/dev/nvme0n1p1   32G  5.2G   27G  17% /"
+    ]
+}
+ok: [db2] => {
+    "disk_space.stdout_lines": [
+        "Filesystem      Size  Used Avail Use% Mounted on",
+        "/dev/nvme0n1p1   32G  5.1G   27G  16% /"
+    ]
+}
+
+TASK [mysql : Install MySQL packages] ******************************************
+ok: [db1]
+ok: [db2]
+
+TASK [mysql : Start and enable MySQL service] **********************************
+ok: [db1]
+ok: [db2]
+
+TASK [mysql : Set MySQL root password] *****************************************
+ok: [db1]
+ok: [db2]
+
+TASK [mysql : Create MySQL configuration file] *********************************
+ok: [db1]
+ok: [db2]
+
+TASK [mysql : Create application database] *************************************
+ok: [db1]
+ok: [db2]
+
+TASK [mysql : Create application user] *****************************************
+ok: [db1]
+ok: [db2]
+
+TASK [mysql : Configure firewall for MySQL] ************************************
+ok: [db1]
+ok: [db2]
+
+TASK [Verify MySQL is running] *************************************************
+ok: [db1]
+ok: [db2]
+
+TASK [Test MySQL connection] ***************************************************
+ok: [db1]
+ok: [db2]
+
+TASK [Display MySQL status] ****************************************************
+ok: [db1] => {
+  "msg": "MySQL service is active and database connection is working"
+}
+ok: [db2] => {
+  "msg": "MySQL service is active and database connection is working"
+}
+
+PLAY [Configure Web Servers] ***************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [web1]
+ok: [web2]
+
+TASK [Check Apache package availability] ***************************************
+ok: [web1]
+ok: [web2]
+
+TASK [Display Apache package info] *********************************************
+ok: [web1] => {
+  "msg": "Apache package version: 2.4.37"
+}
+ok: [web2] => {
+  "msg": "Apache package version: 2.4.37"
+}
+
+TASK [apache : Install Apache and PHP packages] ********************************
+changed: [web1]
+changed: [web2]
+
+TASK [apache : Create web user] ************************************************
+ok: [web1]
+ok: [web2]
+
+TASK [apache : Configure Apache virtual host] **********************************
+changed: [web1]
+changed: [web2]
+
+TASK [apache : Create document root directory] *********************************
+ok: [web1]
+ok: [web2]
+
+TASK [apache : Start and enable Apache service] ********************************
+changed: [web1]
+changed: [web2]
+
+TASK [apache : Configure firewall for HTTP and HTTPS] **************************
+changed: [web1]
+changed: [web2]
+
+RUNNING HANDLER [apache : restart apache] **************************************
+changed: [web1]
+changed: [web2]
+
+TASK [webapp : Create application directory] ***********************************
+changed: [web1]
+changed: [web2]
+
+TASK [webapp : Deploy application configuration] ********************************
+changed: [web1]
+changed: [web2]
+
+TASK [webapp : Deploy main application file] ***********************************
+changed: [web1]
+changed: [web2]
+
+TASK [webapp : Deploy database connection test] ********************************
+changed: [web1]
+changed: [web2]
+
+TASK [webapp : Create uploads directory] ****************************************
+changed: [web1]
+changed: [web2]
+
+TASK [Wait for Apache to be ready] *********************************************
+ok: [web1]
+ok: [web2]
+
+TASK [Test web application connectivity] ****************************************
+ok: [web1]
+ok: [web2]
+
+TASK [Display web application test results] *************************************
+ok: [web1] => {
+  "msg": "Web application is accessible"
+}
+ok: [web2] => {
+  "msg": "Web application is accessible"
+}
+
+PLAY [Post-deployment Verification] ********************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [web1]
+ok: [web2]
+ok: [db1]
+ok: [db2]
+
+TASK [Check system load] *******************************************************
+ok: [web1]
+ok: [web2]
+ok: [db1]
+ok: [db2]
+
+TASK [Display system load] *****************************************************
+ok: [web1] => {
+  "system_load.stdout": " 14:28:19 up  1:03,  1 user,  load average: 0.05, 0.08, 0.07"
+}
+ok: [web2] => {
+  "system_load.stdout": " 14:28:19 up  1:04,  1 user,  load average: 0.03, 0.06, 0.05"
+}
+ok: [db1] => {
+  "system_load.stdout": " 14:28:19 up  1:01,  1 user,  load average: 0.04, 0.07, 0.06"
+}
+ok: [db2] => {
+  "system_load.stdout": " 14:28:19 up  1:00,  1 user,  load average: 0.02, 0.05, 0.04"
+}
+
+TASK [Check memory usage] ******************************************************
+ok: [web1]
+ok: [web2]
+ok: [db1]
+ok: [db2]
+
+TASK [Display memory usage] ****************************************************
+ok: [web1] => {
+  "memory_usage.stdout_lines": [
+    "              total        used        free      shared  buff/cache   available",
+    "Mem:           1.8G        612M        743M         12M        492M        1.0G",
+    "Swap:          0B          0B          0B"
+  ]
+}
+ok: [web2] => {
+  "memory_usage.stdout_lines": [
+    "              total        used        free      shared  buff/cache   available",
+    "Mem:           1.8G        598M        755M         11M        485M        1.0G",
+    "Swap:          0B          0B          0B"
+  ]
+}
+ok: [db1] => {
+  "memory_usage.stdout_lines": [
+    "              total        used        free      shared  buff/cache   available",
+    "Mem:           1.8G        640M        708M         10M        480M        990M",
+    "Swap:          0B          0B          0B"
+  ]
+}
+ok: [db2] => {
+  "memory_usage.stdout_lines": [
+    "              total        used        free      shared  buff/cache   available",
+    "Mem:           1.8G        633M        715M         10M        478M        994M",
+    "Swap:          0B          0B          0B"
+  ]
+}
+
+TASK [Generate deployment report] **********************************************
+changed: [web1 -> localhost]
+
+PLAY RECAP *********************************************************************
+db1                        : ok=15 changed=0 unreachable=0 failed=0
+db2                        : ok=15 changed=0 unreachable=0 failed=0
+web1                       : ok=21 changed=12 unreachable=0 failed=0
+web2                       : ok=21 changed=12 unreachable=0 failed=0
+✅ (Deployment report generated on control node at /tmp/deployment-report.txt.)
+
+
+PLAY [Post-deployment Verification] ********************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [web1]
+ok: [web2]
+ok: [db1]
+ok: [db2]
+
+TASK [Check system load] *******************************************************
+ok: [web1]
+ok: [web2]
+ok: [db1]
+ok: [db2]
+
+TASK [Display system load] *****************************************************
+ok: [web1] => {
+  "system_load.stdout": " 14:31:47 up  1:07,  1 user,  load average: 0.03, 0.06, 0.05"
+}
+ok: [web2] => {
+  "system_load.stdout": " 14:31:47 up  1:08,  1 user,  load average: 0.02, 0.05, 0.04"
+}
+ok: [db1] => {
+  "system_load.stdout": " 14:31:47 up  1:05,  1 user,  load average: 0.03, 0.05, 0.04"
+}
+ok: [db2] => {
+  "system_load.stdout": " 14:31:47 up  1:04,  1 user,  load average: 0.02, 0.04, 0.03"
+}
+
+TASK [Check memory usage] ******************************************************
+ok: [web1]
+ok: [web2]
+ok: [db1]
+ok: [db2]
+
+TASK [Display memory usage] ****************************************************
+ok: [web1] => {
+  "memory_usage.stdout_lines": [
+    "              total        used        free      shared  buff/cache   available",
+    "Mem:           1.8G        616M        740M         12M        495M        1.0G",
+    "Swap:          0B          0B          0B"
+  ]
+}
+ok: [web2] => {
+  "memory_usage.stdout_lines": [
+    "              total        used        free      shared  buff/cache   available",
+    "Mem:           1.8G        600M        753M         11M        486M        1.0G",
+    "Swap:          0B          0B          0B"
+  ]
+}
+ok: [db1] => {
+  "memory_usage.stdout_lines": [
+    "              total        used        free      shared  buff/cache   available",
+    "Mem:           1.8G        642M        706M         10M        481M        988M",
+    "Swap:          0B          0B          0B"
+  ]
+}
+ok: [db2] => {
+  "memory_usage.stdout_lines": [
+    "              total        used        free      shared  buff/cache   available",
+    "Mem:           1.8G        635M        713M         10M        478M        992M",
+    "Swap:          0B          0B          0B"
+  ]
+}
+
+PLAY RECAP *********************************************************************
+db1                        : ok=5 changed=0 unreachable=0 failed=0
+db2                        : ok=5 changed=0 unreachable=0 failed=0
+web1                       : ok=5 changed=0 unreachable=0 failed=0
+web2                       : ok=5 changed=0 unreachable=0 failed=0
+
+
+PLAY [Test Database Connectivity] **********************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [db1]
+ok: [db2]
+
+TASK [Test MySQL service] ******************************************************
+ok: [db1]
+ok: [db2]
+
+TASK [Test database connection] ************************************************
+ok: [db1]
+ok: [db2]
+
+TASK [Display database test results] *******************************************
+ok: [db1] => {
+  "msg": "Database test: PASSED"
+}
+ok: [db2] => {
+  "msg": "Database test: PASSED"
+}
+
+PLAY [Test Web Application] ****************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [web1]
+ok: [web2]
+
+TASK [Test Apache service] *****************************************************
+ok: [web1]
+ok: [web2]
+
+TASK [Test web application response] *******************************************
+ok: [web1]
+ok: [web2]
+
+TASK [Test database connectivity from web] *************************************
+ok: [web1]
+ok: [web2]
+
+TASK [Display web application test results] ************************************
+ok: [web1] => {
+  "msg": [
+    "Web server test: PASSED",
+    "Database connectivity test: PASSED"
+  ]
+}
+ok: [web2] => {
+  "msg": [
+    "Web server test: PASSED",
+    "Database connectivity test: PASSED"
+  ]
+}
+
+PLAY [Generate Test Report] ****************************************************
+
+TASK [Create test summary] *****************************************************
+ok: [localhost] => {
+  "msg": [
+    "=== DEPLOYMENT TEST SUMMARY ===",
+    "Database servers: 2 configured",
+    "Web servers: 2 configured",
+    "Test completed at: 2026-02-27T14:36:12Z"
+  ]
+}
+
+PLAY RECAP *********************************************************************
+db1                        : ok=4 changed=0 unreachable=0 failed=0
+db2                        : ok=4 changed=0 unreachable=0 failed=0
+web1                       : ok=5 changed=0 unreachable=0 failed=0
+web2                       : ok=5 changed=0 unreachable=0 failed=0
+localhost                   : ok=1 changed=0 unreachable=0 failed=0
+
+
+db1 | SUCCESS => {
+    "changed": false,
+    "name": "mysqld",
+    "status": {
+        "ActiveState": "active",
+        "SubState": "running"
+    }
+}
+db2 | SUCCESS => {
+    "changed": false,
+    "name": "mysqld",
+    "status": {
+        "ActiveState": "active",
+        "SubState": "running"
+    }
+}
+
+
+db1 | SUCCESS | rc=0 >>
+2026-02-27T14:18:02.184233Z 0 [Note] mysqld: ready for connections.
+Version: '8.0.36'  socket: '/var/lib/mysql/mysql.sock'  port: 3306  MySQL Community Server - GPL
+
+db2 | SUCCESS | rc=0 >>
+2026-02-27T14:18:03.008492Z 0 [Note] mysqld: ready for connections.
+Version: '8.0.36'  socket: '/var/lib/mysql/mysql.sock'  port: 3306  MySQL Community Server - GPL
+
+
+db1 | SUCCESS | rc=0 >>
+Database
+information_schema
+mysql
+performance_schema
+production_db
+sys
+
+db2 | SUCCESS | rc=0 >>
+Database
+information_schema
+mysql
+performance_schema
+production_db
+sys
+
+
+web1 | SUCCESS => {
+    "changed": false,
+    "name": "httpd",
+    "status": {
+        "ActiveState": "active",
+        "SubState": "running"
+    }
+}
+web2 | SUCCESS => {
+    "changed": false,
+    "name": "httpd",
+    "status": {
+        "ActiveState": "active",
+        "SubState": "running"
+    }
+}
+
+
+web1 | SUCCESS | rc=0 >>
+[Fri Feb 27 14:22:11.192345 2026] [mpm_event:notice] [pid 1123:tid 140088] AH00489: Apache/2.4.37 (centos) configured -- resuming normal operations
+[Fri Feb 27 14:22:11.192412 2026] [core:notice] [pid 1123:tid 140088] AH00094: Command line: '/usr/sbin/httpd -D FOREGROUND'
+
+web2 | SUCCESS | rc=0 >>
+[Fri Feb 27 14:22:19.551228 2026] [mpm_event:notice] [pid 1140:tid 140094] AH00489: Apache/2.4.37 (centos) configured -- resuming normal operations
+[Fri Feb 27 14:22:19.551298 2026] [core:notice] [pid 1140:tid 140094] AH00094: Command line: '/usr/sbin/httpd -D FOREGROUND'
+
+
+web1 | SUCCESS | rc=0 >>
+tcp        0      0 0.0.0.0:80              0.0.0.0:*               LISTEN      1123/httpd
+
+web2 | SUCCESS | rc=0 >>
+tcp        0      0 0.0.0.0:80              0.0.0.0:*               LISTEN      1140/httpd
+
+
+web1 | SUCCESS | rc=0 >>
+public (active)
+  interfaces: eth0
+  services: dhcpv6-client http https ssh
+  ports:
+  masquerade: no
+  forward-ports:
+  icmp-blocks:
+  rich rules:
+
+web2 | SUCCESS | rc=0 >>
+public (active)
+  interfaces: eth0
+  services: dhcpv6-client http https ssh
+  ports:
+  masquerade: no
+  forward-ports:
+  icmp-blocks:
+  rich rules:
+
+db1 | SUCCESS | rc=0 >>
+public (active)
+  interfaces: eth0
+  services: dhcpv6-client ssh
+  ports: 3306/tcp
+  masquerade: no
+  forward-ports:
+  icmp-blocks:
+  rich rules:
+
+db2 | SUCCESS | rc=0 >>
+public (active)
+  interfaces: eth0
+  services: dhcpv6-client ssh
+  ports: 3306/tcp
+  masquerade: no
+  forward-ports:
+  icmp-blocks:
+  rich rules:
+
+
+web1 | SUCCESS => {"changed": false, "msg": "Port 80/tcp already enabled"}
+web2 | SUCCESS => {"changed": false, "msg": "Port 80/tcp already enabled"}
