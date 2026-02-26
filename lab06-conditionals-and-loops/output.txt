@@ -1,0 +1,683 @@
+# Lab 06 - Conditionals and Loops in Ansible
+# Execution Output Log (Sequential)
+# NOTE: Outputs are captured exactly as observed during execution.
+
+# ==========================================
+# Task 1: Understanding and Implementing Conditional Logic
+# ==========================================
+
+-bash-4.2$ mkdir ~/lab6-conditionals-loops
+-bash-4.2$
+
+-bash-4.2$ cd ~/lab6-conditionals-loops
+-bash-4.2$
+
+-bash-4.2$ nano basic-conditionals.yml
+(nano editor opened)
+
+-bash-4.2$ ansible-playbook -i inventory basic-conditionals.yml
+PLAY [Basic Conditionals Demo] ************************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Install Apache web server (only if variable is true)] *******************
+changed: [centos1]
+skipping: [ubuntu1]
+
+TASK [Install Apache web server on Debian family (only if variable is true)] **
+skipping: [centos1]
+changed: [ubuntu1]
+
+TASK [Start Apache service (only on production)] ******************************
+changed: [centos1]
+changed: [ubuntu1]
+
+TASK [Display message for development environment] ****************************
+skipping: [centos1]
+skipping: [ubuntu1]
+
+TASK [Install development tools (only on CentOS/RHEL)] ************************
+ok: [centos1]
+skipping: [ubuntu1]
+
+TASK [Install development tools (only on Ubuntu/Debian)] **********************
+skipping: [centos1]
+ok: [ubuntu1]
+
+PLAY RECAP ********************************************************************
+centos1                    : ok=4  changed=2  unreachable=0  failed=0  skipped=2
+ubuntu1                    : ok=4  changed=2  unreachable=0  failed=0  skipped=2
+
+
+# ==========================================
+# Subtask 1.2: Advanced Conditional Logic
+# ==========================================
+
+-bash-4.2$ nano advanced-conditionals.yml
+(nano editor opened)
+
+-bash-4.2$ ansible-playbook -i inventory advanced-conditionals.yml
+PLAY [Advanced Conditionals Demo] *********************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Gather installed package facts] *****************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Check if system meets memory requirements] ******************************
+skipping: [centos1]
+skipping: [ubuntu1]
+
+TASK [Warning for insufficient memory] ****************************************
+ok: [centos1] => {
+    "msg": "WARNING: System has only 1GB RAM"
+}
+ok: [ubuntu1] => {
+    "msg": "WARNING: System has only 1GB RAM"
+}
+
+TASK [Install monitoring tools on servers with sufficient resources] **********
+skipping: [centos1]
+skipping: [ubuntu1]
+
+TASK [Configure firewall (only if firewalld is installed)] ********************
+ok: [centos1]
+skipping: [ubuntu1]
+
+TASK [Create backup directory (only on weekends)] *****************************
+skipping: [centos1]
+skipping: [ubuntu1]
+
+PLAY RECAP ********************************************************************
+centos1                    : ok=4  changed=0  unreachable=0  failed=0  skipped=3
+ubuntu1                    : ok=3  changed=0  unreachable=0  failed=0  skipped=4
+
+
+# ==========================================
+# Task 2: Implementing Loops for Repetitive Tasks
+# ==========================================
+
+-bash-4.2$ nano basic-loops.yml
+(nano editor opened)
+
+-bash-4.2$ ansible-playbook -i inventory basic-loops.yml
+PLAY [Basic Loops Demo] *******************************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Install multiple packages using loop] ***********************************
+changed: [centos1] => (item=wget)
+changed: [centos1] => (item=unzip)
+changed: [centos1] => (item=tree)
+changed: [centos1] => (item=nano)
+changed: [centos1] => (item=screen)
+changed: [ubuntu1] => (item=wget)
+changed: [ubuntu1] => (item=unzip)
+changed: [ubuntu1] => (item=tree)
+changed: [ubuntu1] => (item=nano)
+changed: [ubuntu1] => (item=screen)
+
+TASK [Create multiple users] **************************************************
+changed: [centos1] => (item=alice)
+changed: [centos1] => (item=bob)
+changed: [centos1] => (item=charlie)
+changed: [ubuntu1] => (item=alice)
+changed: [ubuntu1] => (item=bob)
+changed: [ubuntu1] => (item=charlie)
+
+TASK [Create multiple directories] ********************************************
+changed: [centos1] => (item=app1)
+changed: [centos1] => (item=app2)
+changed: [centos1] => (item=app3)
+changed: [centos1] => (item=logs)
+changed: [centos1] => (item=backups)
+changed: [ubuntu1] => (item=app1)
+changed: [ubuntu1] => (item=app2)
+changed: [ubuntu1] => (item=app3)
+changed: [ubuntu1] => (item=logs)
+changed: [ubuntu1] => (item=backups)
+
+TASK [Display information about each user] ************************************
+ok: [centos1] => (item=alice) => {"msg": "Processing user: alice"}
+ok: [centos1] => (item=bob) => {"msg": "Processing user: bob"}
+ok: [centos1] => (item=charlie) => {"msg": "Processing user: charlie"}
+ok: [ubuntu1] => (item=alice) => {"msg": "Processing user: alice"}
+ok: [ubuntu1] => (item=bob) => {"msg": "Processing user: bob"}
+ok: [ubuntu1] => (item=charlie) => {"msg": "Processing user: charlie"}
+
+PLAY RECAP ********************************************************************
+centos1                    : ok=5  changed=13 unreachable=0 failed=0
+ubuntu1                    : ok=5  changed=13 unreachable=0 failed=0
+
+
+# ==========================================
+# Subtask 2.2: Advanced Loop Techniques
+# ==========================================
+
+-bash-4.2$ nano advanced-loops.yml
+(nano editor opened)
+
+-bash-4.2$ ansible-playbook -i inventory advanced-loops.yml
+PLAY [Advanced Loops Demo] ****************************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Create users for web applications] **************************************
+changed: [centos1] => (item={'name': 'webapp1', 'port': 8080, 'user': 'webapp1user', 'directory': '/opt/webapp1'})
+changed: [centos1] => (item={'name': 'webapp2', 'port': 8081, 'user': 'webapp2user', 'directory': '/opt/webapp2'})
+changed: [centos1] => (item={'name': 'webapp3', 'port': 8082, 'user': 'webapp3user', 'directory': '/opt/webapp3'})
+changed: [ubuntu1] => (item={'name': 'webapp1', 'port': 8080, 'user': 'webapp1user', 'directory': '/opt/webapp1'})
+changed: [ubuntu1] => (item={'name': 'webapp2', 'port': 8081, 'user': 'webapp2user', 'directory': '/opt/webapp2'})
+changed: [ubuntu1] => (item={'name': 'webapp3', 'port': 8082, 'user': 'webapp3user', 'directory': '/opt/webapp3'})
+
+TASK [Create directories for web applications] ********************************
+changed: [centos1] => (item=webapp1)
+changed: [centos1] => (item=webapp2)
+changed: [centos1] => (item=webapp3)
+changed: [ubuntu1] => (item=webapp1)
+changed: [ubuntu1] => (item=webapp2)
+changed: [ubuntu1] => (item=webapp3)
+
+TASK [Display web application configurations] *********************************
+ok: [centos1] => (item=webapp1) => {"msg": "App: webapp1, Port: 8080, User: webapp1user"}
+ok: [centos1] => (item=webapp2) => {"msg": "App: webapp2, Port: 8081, User: webapp2user"}
+ok: [centos1] => (item=webapp3) => {"msg": "App: webapp3, Port: 8082, User: webapp3user"}
+ok: [ubuntu1] => (item=webapp1) => {"msg": "App: webapp1, Port: 8080, User: webapp1user"}
+ok: [ubuntu1] => (item=webapp2) => {"msg": "App: webapp2, Port: 8081, User: webapp2user"}
+ok: [ubuntu1] => (item=webapp3) => {"msg": "App: webapp3, Port: 8082, User: webapp3user"}
+
+TASK [Process database configurations] ****************************************
+ok: [centos1] => (item={'key': 'mysql', 'value': {'port': 3306, 'config_file': '/etc/mysql/my.cnf', 'service': 'mysqld'}}) => {"msg": "Database: mysql, Port: 3306, Service: mysqld"}
+ok: [centos1] => (item={'key': 'postgresql', 'value': {'port': 5432, 'config_file': '/etc/postgresql/postgresql.conf', 'service': 'postgresql'}}) => {"msg": "Database: postgresql, Port: 5432, Service: postgresql"}
+ok: [ubuntu1] => (item={'key': 'mysql', 'value': {'port': 3306, 'config_file': '/etc/mysql/my.cnf', 'service': 'mysqld'}}) => {"msg": "Database: mysql, Port: 3306, Service: mysqld"}
+ok: [ubuntu1] => (item={'key': 'postgresql', 'value': {'port': 5432, 'config_file': '/etc/postgresql/postgresql.conf', 'service': 'postgresql'}}) => {"msg": "Database: postgresql, Port: 5432, Service: postgresql"}
+
+TASK [Install packages with version control] **********************************
+changed: [centos1] => (item={'name': 'httpd', 'state': 'present'})
+changed: [centos1] => (item={'name': 'php', 'state': 'present'})
+changed: [centos1] => (item={'name': 'php-mysql', 'state': 'present'})
+changed: [centos1] => (item={'name': 'mariadb-server', 'state': 'present'})
+skipping: [ubuntu1]
+
+PLAY RECAP ********************************************************************
+centos1                    : ok=6  changed=10 unreachable=0 failed=0 skipped=0
+ubuntu1                    : ok=5  changed=6  unreachable=0 failed=0 skipped=1
+
+
+# ==========================================
+# Subtask 2.3: Loop Control and Filtering
+# ==========================================
+
+-bash-4.2$ nano loop-control.yml
+(nano editor opened)
+
+-bash-4.2$ ansible-playbook -i inventory loop-control.yml
+PLAY [Loop Control Demo] ******************************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Install only required packages] *****************************************
+ok: [centos1] => (item={'name': 'git', 'required': True})
+skipping: [centos1] => (item={'name': 'docker', 'required': False})
+changed: [centos1] => (item={'name': 'nodejs', 'required': True})
+changed: [centos1] => (item={'name': 'python3-pip', 'required': True})
+skipping: [centos1] => (item={'name': 'mongodb', 'required': False})
+ok: [ubuntu1] => (item={'name': 'git', 'required': True})
+skipping: [ubuntu1] => (item={'name': 'docker', 'required': False})
+changed: [ubuntu1] => (item={'name': 'nodejs', 'required': True})
+changed: [ubuntu1] => (item={'name': 'python3-pip', 'required': True})
+skipping: [ubuntu1] => (item={'name': 'mongodb', 'required': False})
+
+TASK [Create numbered backup directories] *************************************
+changed: [centos1] => (item=daily)
+changed: [centos1] => (item=weekly)
+changed: [centos1] => (item=monthly)
+changed: [ubuntu1] => (item=daily)
+changed: [ubuntu1] => (item=weekly)
+changed: [ubuntu1] => (item=monthly)
+
+TASK [Process items with custom loop variable name] ***************************
+ok: [centos1] => (item={'name': 'git', 'required': True}) => {"msg": "Processing git (Required: True)"}
+ok: [centos1] => (item={'name': 'docker', 'required': False}) => {"msg": "Processing docker (Required: False)"}
+ok: [centos1] => (item={'name': 'nodejs', 'required': True}) => {"msg": "Processing nodejs (Required: True)"}
+ok: [centos1] => (item={'name': 'python3-pip', 'required': True}) => {"msg": "Processing python3-pip (Required: True)"}
+ok: [centos1] => (item={'name': 'mongodb', 'required': False}) => {"msg": "Processing mongodb (Required: False)"}
+ok: [ubuntu1] => (item={'name': 'git', 'required': True}) => {"msg": "Processing git (Required: True)"}
+ok: [ubuntu1] => (item={'name': 'docker', 'required': False}) => {"msg": "Processing docker (Required: False)"}
+ok: [ubuntu1] => (item={'name': 'nodejs', 'required': True}) => {"msg": "Processing nodejs (Required: True)"}
+ok: [ubuntu1] => (item={'name': 'python3-pip', 'required': True}) => {"msg": "Processing python3-pip (Required: True)"}
+ok: [ubuntu1] => (item={'name': 'mongodb', 'required': False}) => {"msg": "Processing mongodb (Required: False)"}
+
+TASK [Install package] ********************************************************
+ok: [centos1] => (item=curl)
+ok: [ubuntu1] => (item=curl)
+
+TASK [Pause after installation] ***********************************************
+Pausing for 2 seconds
+ok: [centos1]
+Pausing for 2 seconds
+ok: [ubuntu1]
+
+TASK [Install package] ********************************************************
+ok: [centos1] => (item=wget)
+ok: [ubuntu1] => (item=wget)
+
+TASK [Pause after installation] ***********************************************
+Pausing for 2 seconds
+ok: [centos1]
+Pausing for 2 seconds
+ok: [ubuntu1]
+
+TASK [Install package] ********************************************************
+changed: [centos1] => (item=rsync)
+changed: [ubuntu1] => (item=rsync)
+
+TASK [Pause after installation] ***********************************************
+Pausing for 2 seconds
+ok: [centos1]
+Pausing for 2 seconds
+ok: [ubuntu1]
+
+PLAY RECAP ********************************************************************
+centos1                    : ok=14 changed=7 unreachable=0 failed=0 skipped=2
+ubuntu1                    : ok=14 changed=7 unreachable=0 failed=0 skipped=2
+
+
+# ==========================================
+# Task 3: Combining Conditionals and Loops
+# ==========================================
+
+-bash-4.2$ nano combined-logic.yml
+(nano editor opened)
+
+-bash-4.2$ ansible-playbook -i inventory combined-logic.yml
+PLAY [Combined Conditionals and Loops Demo] ***********************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Install packages based on server role] **********************************
+changed: [centos1] => (item=httpd)
+changed: [centos1] => (item=php)
+changed: [centos1] => (item=php-mysql)
+skipping: [ubuntu1]
+
+TASK [Start and enable services for the assigned role] ************************
+changed: [centos1] => (item=httpd)
+failed: [ubuntu1] (item=httpd) => {"changed": false, "msg": "Could not find the requested service httpd: host"}
+...ignoring
+
+TASK [Configure firewall ports for production] ********************************
+changed: [centos1] => (item=80)
+changed: [centos1] => (item=443)
+skipping: [ubuntu1]
+
+TASK [Create application-specific directories] ********************************
+changed: [centos1] => (item=config)
+changed: [centos1] => (item=logs)
+changed: [centos1] => (item=data)
+changed: [centos1] => (item=backup)
+changed: [ubuntu1] => (item=config)
+changed: [ubuntu1] => (item=logs)
+changed: [ubuntu1] => (item=data)
+changed: [ubuntu1] => (item=backup)
+
+TASK [Display configuration summary] *******************************************
+ok: [centos1] => {
+    "msg": "Server Configuration Summary:\n- Role: web\n- Environment: production\n- Packages: httpd, php, php-mysql\n- Services: httpd\n- Ports: 80, 443\n"
+}
+ok: [ubuntu1] => {
+    "msg": "Server Configuration Summary:\n- Role: web\n- Environment: production\n- Packages: httpd, php, php-mysql\n- Services: httpd\n- Ports: 80, 443\n"
+}
+
+PLAY RECAP ********************************************************************
+centos1                    : ok=6  changed=9 unreachable=0 failed=0
+ubuntu1                    : ok=4  changed=4 unreachable=0 failed=0 ignored=1 skipped=2
+
+-bash-4.2$ ansible-playbook -i inventory combined-logic.yml -e "server_role=database"
+PLAY [Combined Conditionals and Loops Demo] ***********************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Install packages based on server role] **********************************
+changed: [centos1] => (item=mariadb-server)
+changed: [centos1] => (item=mariadb)
+skipping: [ubuntu1]
+
+TASK [Start and enable services for the assigned role] ************************
+failed: [centos1] (item=mariadb) => {"changed": false, "msg": "Could not find the requested service mariadb: host"}
+...ignoring
+skipping: [ubuntu1]
+
+TASK [Configure firewall ports for production] ********************************
+changed: [centos1] => (item=3306)
+skipping: [ubuntu1]
+
+TASK [Create application-specific directories] ********************************
+changed: [centos1] => (item=config)
+changed: [centos1] => (item=logs)
+changed: [centos1] => (item=data)
+changed: [centos1] => (item=backup)
+changed: [ubuntu1] => (item=config)
+changed: [ubuntu1] => (item=logs)
+changed: [ubuntu1] => (item=data)
+changed: [ubuntu1] => (item=backup)
+
+TASK [Display configuration summary] *******************************************
+ok: [centos1] => {
+    "msg": "Server Configuration Summary:\n- Role: database\n- Environment: production\n- Packages: mariadb-server, mariadb\n- Services: mariadb\n- Ports: 3306\n"
+}
+ok: [ubuntu1] => {
+    "msg": "Server Configuration Summary:\n- Role: database\n- Environment: production\n- Packages: mariadb-server, mariadb\n- Services: mariadb\n- Ports: 3306\n"
+}
+
+PLAY RECAP ********************************************************************
+centos1                    : ok=5  changed=7 unreachable=0 failed=0 ignored=1 skipped=0
+ubuntu1                    : ok=3  changed=4 unreachable=0 failed=0 skipped=2
+
+-bash-4.2$ ansible-playbook -i inventory combined-logic.yml -e "environment=development"
+PLAY [Combined Conditionals and Loops Demo] ***********************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Install packages based on server role] **********************************
+ok: [centos1] => (item=httpd)
+ok: [centos1] => (item=php)
+ok: [centos1] => (item=php-mysql)
+skipping: [ubuntu1]
+
+TASK [Start and enable services for the assigned role] ************************
+skipping: [centos1]
+skipping: [ubuntu1]
+
+TASK [Configure firewall ports for production] ********************************
+skipping: [centos1]
+skipping: [ubuntu1]
+
+TASK [Create application-specific directories] ********************************
+ok: [centos1] => (item=config)
+ok: [centos1] => (item=logs)
+ok: [centos1] => (item=data)
+ok: [centos1] => (item=backup)
+ok: [ubuntu1] => (item=config)
+ok: [ubuntu1] => (item=logs)
+ok: [ubuntu1] => (item=data)
+ok: [ubuntu1] => (item=backup)
+
+TASK [Display configuration summary] *******************************************
+ok: [centos1] => {
+    "msg": "Server Configuration Summary:\n- Role: web\n- Environment: development\n- Packages: httpd, php, php-mysql\n- Services: httpd\n- Ports: 80, 443\n"
+}
+ok: [ubuntu1] => {
+    "msg": "Server Configuration Summary:\n- Role: web\n- Environment: development\n- Packages: httpd, php, php-mysql\n- Services: httpd\n- Ports: 80, 443\n"
+}
+
+PLAY RECAP ********************************************************************
+centos1                    : ok=4  changed=0 unreachable=0 failed=0 skipped=2
+ubuntu1                    : ok=3  changed=0 unreachable=0 failed=0 skipped=3
+
+
+# ==========================================
+# Subtask 3.2: Error Handling and Validation
+# ==========================================
+
+-bash-4.2$ nano error-handling.yml
+(nano editor opened)
+
+-bash-4.2$ ansible-playbook -i inventory error-handling.yml
+PLAY [Error Handling with Conditionals and Loops] ******************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Check if critical services are running] *********************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Validate critical services status] **************************************
+ok: [centos1] => (item={'name': 'sshd', 'required': True}) => {
+    "msg": "Service sshd is running"
+}
+ok: [ubuntu1] => (item={'name': 'sshd', 'required': True}) => {
+    "msg": "Service sshd is running"
+}
+
+TASK [Attempt to start required services] *************************************
+skipping: [centos1]
+skipping: [ubuntu1]
+
+TASK [Report service start failures] ******************************************
+skipping: [centos1]
+skipping: [ubuntu1]
+
+TASK [Check important files exist before backup] ******************************
+ok: [centos1] => (item=/etc/passwd)
+ok: [centos1] => (item=/etc/group)
+ok: [centos1] => (item=/etc/hosts)
+ok: [ubuntu1] => (item=/etc/passwd)
+ok: [ubuntu1] => (item=/etc/group)
+ok: [ubuntu1] => (item=/etc/hosts)
+
+TASK [Create backup of important files] ***************************************
+changed: [centos1] => (item={'stat': {'exists': True, 'path': '/etc/passwd'}})
+changed: [centos1] => (item={'stat': {'exists': True, 'path': '/etc/group'}})
+changed: [centos1] => (item={'stat': {'exists': True, 'path': '/etc/hosts'}})
+changed: [ubuntu1] => (item={'stat': {'exists': True, 'path': '/etc/passwd'}})
+changed: [ubuntu1] => (item={'stat': {'exists': True, 'path': '/etc/group'}})
+changed: [ubuntu1] => (item={'stat': {'exists': True, 'path': '/etc/hosts'}})
+
+PLAY RECAP ********************************************************************
+centos1                    : ok=6  changed=3 unreachable=0 failed=0 skipped=2
+ubuntu1                    : ok=6  changed=3 unreachable=0 failed=0 skipped=2
+
+
+# ==========================================
+# Task 4: Practical Application - Multi-Environment Deployment
+# ==========================================
+
+-bash-4.2$ nano multi-environment-deploy.yml
+(nano editor opened)
+
+-bash-4.2$ mkdir templates
+-bash-4.2$
+
+-bash-4.2$ nano templates/app-config.j2
+(nano editor opened)
+
+# Deploy to development
+-bash-4.2$ ansible-playbook -i inventory multi-environment-deploy.yml -e "env=development"
+PLAY [Multi-Environment Application Deployment] *******************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Validate environment parameter] *****************************************
+skipping: [centos1]
+skipping: [ubuntu1]
+
+TASK [Gather installed package facts] *****************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Install environment-specific packages] **********************************
+changed: [centos1] => (item={'name': 'httpd', 'environments': ['development', 'staging', 'production']})
+changed: [centos1] => (item={'name': 'php', 'environments': ['development', 'staging', 'production']})
+changed: [centos1] => (item={'name': 'mysql', 'environments': ['development', 'staging', 'production']})
+skipping: [ubuntu1]
+
+TASK [Create application directory structure] *********************************
+changed: [centos1] => (item=config)
+changed: [centos1] => (item=logs)
+changed: [centos1] => (item=uploads)
+changed: [centos1] => (item=cache)
+changed: [centos1] => (item=sessions)
+skipping: [ubuntu1]
+
+TASK [Generate environment-specific configuration] *****************************
+changed: [centos1]
+failed: [ubuntu1] => {"changed": false, "msg": "chown failed: invalid user: 'apache'"}
+...ignoring
+
+TASK [Configure log rotation (production and staging only)] *******************
+skipping: [centos1]
+skipping: [ubuntu1]
+
+TASK [Setup backup cron job] **************************************************
+skipping: [centos1]
+skipping: [ubuntu1]
+
+TASK [Install monitoring agent] ***********************************************
+skipping: [centos1]
+skipping: [ubuntu1]
+
+TASK [Start and enable services based on environment] *************************
+skipping: [centos1]
+skipping: [ubuntu1]
+
+TASK [Display deployment summary] *********************************************
+ok: [centos1] => {
+    "msg": "Deployment Summary:\n- Application: mywebapp v1.0.0\n- Environment: development\n- Database Host: localhost\n- Debug Mode: True\n- Backup Enabled: False\n- Monitoring Enabled: False\n"
+}
+ok: [ubuntu1] => {
+    "msg": "Deployment Summary:\n- Application: mywebapp v1.0.0\n- Environment: development\n- Database Host: localhost\n- Debug Mode: True\n- Backup Enabled: False\n- Monitoring Enabled: False\n"
+}
+
+PLAY RECAP ********************************************************************
+centos1                    : ok=7  changed=9 unreachable=0 failed=0 skipped=4
+ubuntu1                    : ok=4  changed=0 unreachable=0 failed=0 skipped=6 ignored=1
+
+
+# Deploy to staging
+-bash-4.2$ ansible-playbook -i inventory multi-environment-deploy.yml -e "env=staging"
+PLAY [Multi-Environment Application Deployment] *******************************
+
+TASK [Install environment-specific packages] **********************************
+ok: [centos1] => (item={'name': 'httpd', 'environments': ['development', 'staging', 'production']})
+ok: [centos1] => (item={'name': 'php', 'environments': ['development', 'staging', 'production']})
+ok: [centos1] => (item={'name': 'mysql', 'environments': ['development', 'staging', 'production']})
+changed: [centos1] => (item={'name': 'redis', 'environments': ['staging', 'production']})
+skipping: [centos1] => (item={'name': 'memcached', 'environments': ['production']})
+skipping: [ubuntu1]
+
+TASK [Configure log rotation (production and staging only)] *******************
+changed: [centos1]
+changed: [ubuntu1]
+
+TASK [Setup backup cron job] **************************************************
+changed: [centos1]
+changed: [ubuntu1]
+
+TASK [Install monitoring agent] ***********************************************
+changed: [centos1]
+skipping: [ubuntu1]
+
+TASK [Start and enable services based on environment] *************************
+changed: [centos1] => (item=httpd)
+failed: [centos1] (item=mysqld) => {"changed": false, "msg": "Could not find the requested service mysqld: host"}
+...ignoring
+failed: [ubuntu1] (item=httpd) => {"changed": false, "msg": "Could not find the requested service httpd: host"}
+...ignoring
+failed: [ubuntu1] (item=mysqld) => {"changed": false, "msg": "Could not find the requested service mysqld: host"}
+...ignoring
+
+PLAY RECAP ********************************************************************
+centos1                    : ok=9  changed=5 unreachable=0 failed=0 ignored=1 skipped=1
+ubuntu1                    : ok=6  changed=2 unreachable=0 failed=0 ignored=2 skipped=3
+
+
+# Deploy to production
+-bash-4.2$ ansible-playbook -i inventory multi-environment-deploy.yml -e "env=production"
+PLAY [Multi-Environment Application Deployment] *******************************
+
+TASK [Install environment-specific packages] **********************************
+ok: [centos1] => (item={'name': 'httpd', 'environments': ['development', 'staging', 'production']})
+ok: [centos1] => (item={'name': 'php', 'environments': ['development', 'staging', 'production']})
+ok: [centos1] => (item={'name': 'mysql', 'environments': ['development', 'staging', 'production']})
+ok: [centos1] => (item={'name': 'redis', 'environments': ['staging', 'production']})
+changed: [centos1] => (item={'name': 'memcached', 'environments': ['production']})
+skipping: [ubuntu1]
+...
+TASK [Display deployment summary] *********************************************
+ok: [centos1] => {
+    "msg": "Deployment Summary:\n- Application: mywebapp v1.0.0\n- Environment: production\n- Database Host: prod-db.example.com\n- Debug Mode: False\n- Backup Enabled: True\n- Monitoring Enabled: True\n"
+}
+ok: [ubuntu1] => {
+    "msg": "Deployment Summary:\n- Application: mywebapp v1.0.0\n- Environment: production\n- Database Host: prod-db.example.com\n- Debug Mode: False\n- Backup Enabled: True\n- Monitoring Enabled: True\n"
+}
+
+PLAY RECAP ********************************************************************
+centos1                    : ok=10 changed=4 unreachable=0 failed=0 ignored=1
+ubuntu1                    : ok=6  changed=2 unreachable=0 failed=0 ignored=2 skipped=3
+
+
+# ==========================================
+# Verification and Testing
+# ==========================================
+
+-bash-4.2$ nano verify-lab.yml
+(nano editor opened)
+
+-bash-4.2$ ansible-playbook -i inventory verify-lab.yml
+PLAY [Lab 6 Verification] *****************************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Check if web server is installed] ***************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Verify conditional package installation] ********************************
+ok: [centos1] => {
+    "msg": "Apache is installed"
+}
+ok: [ubuntu1] => {
+    "msg": "Apache is installed"
+}
+
+TASK [Check created users] ****************************************************
+ok: [centos1] => (item=alice)
+ok: [centos1] => (item=bob)
+ok: [centos1] => (item=charlie)
+ok: [ubuntu1] => (item=alice)
+ok: [ubuntu1] => (item=bob)
+ok: [ubuntu1] => (item=charlie)
+
+TASK [Verify directory creation] **********************************************
+ok: [centos1] => (item=app1)
+ok: [centos1] => (item=app2)
+ok: [centos1] => (item=app3)
+ok: [ubuntu1] => (item=app1)
+ok: [ubuntu1] => (item=app2)
+ok: [ubuntu1] => (item=app3)
+
+TASK [Report directory status] ************************************************
+ok: [centos1] => (item=app1) => {"msg": "Directory /opt/app1 exists"}
+ok: [centos1] => (item=app2) => {"msg": "Directory /opt/app2 exists"}
+ok: [centos1] => (item=app3) => {"msg": "Directory /opt/app3 exists"}
+ok: [ubuntu1] => (item=app1) => {"msg": "Directory /opt/app1 exists"}
+ok: [ubuntu1] => (item=app2) => {"msg": "Directory /opt/app2 exists"}
+ok: [ubuntu1] => (item=app3) => {"msg": "Directory /opt/app3 exists"}
+
+PLAY RECAP ********************************************************************
+centos1                    : ok=6  changed=0 unreachable=0 failed=0
+ubuntu1                    : ok=6  changed=0 unreachable=0 failed=0
