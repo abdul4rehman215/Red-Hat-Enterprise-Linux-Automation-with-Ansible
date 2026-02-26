@@ -1,0 +1,109 @@
+---
+- name: Install and Configure Apache Web Server
+  hosts: webservers
+  become: yes
+  vars:
+    apache_package: httpd
+    apache_service: httpd
+    document_root: /var/www/html
+
+  tasks:
+    - name: Update system packages
+      yum:
+        name: '*'
+        state: latest
+        update_cache: yes
+      tags: update
+
+    - name: Install Apache web server
+      yum:
+        name: "{{ apache_package }}"
+        state: present
+      tags: install
+
+    - name: Install additional packages
+      yum:
+        name:
+          - wget
+          - curl
+          - vim
+        state: present
+      tags: install
+
+    - name: Create custom Apache configuration
+      copy:
+        content: |
+          ServerRoot /etc/httpd
+          Listen 80
+          Include conf.modules.d/*.conf
+          User apache
+          Group apache
+          ServerAdmin webmaster@localhost
+          DocumentRoot {{ document_root }}
+
+          <Directory "{{ document_root }}">
+            AllowOverride None
+            Require all granted
+          </Directory>
+
+          ErrorLog logs/error_log
+          CustomLog logs/access_log combined
+        dest: /etc/httpd/conf/httpd.conf
+        backup: yes
+      notify: restart apache
+      tags: configure
+
+    - name: Set proper permissions on document root
+      file:
+        path: "{{ document_root }}"
+        state: directory
+        owner: apache
+        group: apache
+        mode: '0755'
+      tags: configure
+
+    - name: Configure firewall for HTTP traffic
+      firewalld:
+        service: http
+        permanent: yes
+        state: enabled
+        immediate: yes
+      tags: firewall
+
+    - name: Start and enable Apache service
+      systemd:
+        name: "{{ apache_service }}"
+        state: started
+        enabled: yes
+      tags: service
+
+    - name: Verify Apache is running
+      systemd:
+        name: "{{ apache_service }}"
+        state: started
+      register: apache_status
+      tags: verify
+
+    - name: Display Apache service status
+      debug:
+        msg: "Apache service is {{ apache_status.status.ActiveState }}"
+      tags: verify
+
+    - name: Check if Apache is listening on port 80
+      wait_for:
+        port: 80
+        host: "{{ ansible_default_ipv4.address }}"
+        timeout: 30
+      tags: verify
+
+  handlers:
+    - name: restart apache
+      systemd:
+        name: "{{ apache_service }}"
+        state: restarted
+        enabled: yes
+
+    - name: reload apache
+      systemd:
+        name: "{{ apache_service }}"
+        state: reloaded
