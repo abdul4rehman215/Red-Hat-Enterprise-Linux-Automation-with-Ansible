@@ -1,0 +1,275 @@
+-bash-4.2$ pwd
+/home/centos/ansible-lab9
+
+-bash-4.2$ tree roles/
+roles/
+└── apache-webserver
+    ├── defaults
+    ├── files
+    ├── handlers
+    ├── meta
+    ├── tasks
+    ├── templates
+    └── vars
+
+
+PLAY [Deploy Apache Web Server using Custom Role] ******************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [node1]
+ok: [node2]
+
+TASK [apache-webserver : Install Apache HTTP Server] ***************************
+changed: [node1]
+changed: [node2]
+
+TASK [apache-webserver : Start and enable Apache service] **********************
+changed: [node1]
+changed: [node2]
+
+TASK [apache-webserver : Create document root directory] ***********************
+ok: [node1]
+ok: [node2]
+
+TASK [apache-webserver : Deploy custom index.html from template] ***************
+changed: [node1]
+changed: [node2]
+
+TASK [apache-webserver : Configure Apache virtual host] ************************
+changed: [node1]
+changed: [node2]
+
+TASK [apache-webserver : Open firewall for HTTP traffic] ***********************
+fatal: [node1]: FAILED! => {"changed": false, "msg": "Failed to connect to bus: No such file or directory"}
+...ignoring
+fatal: [node2]: FAILED! => {"changed": false, "msg": "Failed to connect to bus: No such file or directory"}
+...ignoring
+
+RUNNING HANDLER [apache-webserver : restart apache] ****************************
+changed: [node1]
+changed: [node2]
+
+PLAY RECAP *********************************************************************
+node1                      : ok=7  changed=5  unreachable=0  failed=0  ignored=1
+node2                      : ok=7  changed=5  unreachable=0  failed=0  ignored=1
+
+2. Verify the playbook execution and check for any errors. ✅
+(Firewall task shows ignored failure because of ignore_errors: yes, everything else applied fine.)
+
+
+PLAY [Deploy Apache Web Server with Custom Configuration] ***********************
+
+TASK [Gathering Facts] *********************************************************
+ok: [node1]
+ok: [node2]
+
+TASK [apache-webserver : Install Apache HTTP Server] ***************************
+ok: [node1]
+ok: [node2]
+
+TASK [apache-webserver : Start and enable Apache service] **********************
+ok: [node1]
+ok: [node2]
+
+TASK [apache-webserver : Create document root directory] ***********************
+ok: [node1]
+ok: [node2]
+
+TASK [apache-webserver : Deploy custom index.html from template] ***************
+changed: [node1]
+changed: [node2]
+
+TASK [apache-webserver : Configure Apache virtual host] ************************
+changed: [node1]
+changed: [node2]
+
+TASK [apache-webserver : Open firewall for HTTP traffic] ***********************
+fatal: [node1]: FAILED! => {"changed": false, "msg": "FirewallD is not running"}
+...ignoring
+fatal: [node2]: FAILED! => {"changed": false, "msg": "FirewallD is not running"}
+...ignoring
+
+RUNNING HANDLER [apache-webserver : restart apache] ****************************
+changed: [node1]
+changed: [node2]
+
+PLAY RECAP *********************************************************************
+node1                      : ok=7  changed=3  unreachable=0  failed=0  ignored=1
+node2                      : ok=7  changed=3  unreachable=0  failed=0  ignored=1
+
+
+-bash-4.2$ curl http://192.168.1.10
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Al Nafi Technology Solutions - Web Server</title>
+ <style>
+ body {
+ font-family: Arial, sans-serif;
+ margin: 0;
+ padding: 20px;
+ background-color: #f4f4f4;
+ }
+ .container {
+ max-width: 800px;
+ margin: 0 auto;
+ background-color: white;
+ padding: 30px;
+ border-radius: 10px;
+ box-shadow: 0 0 10px rgba(0,0,0,0.1);
+ }
+ h1 {
+ color: #333;
+ text-align: center;
+ }
+ .info {
+ background-color: #e7f3ff;
+ padding: 15px;
+ border-left: 4px solid #2196F3;
+ margin: 20px 0;
+ }
+ </style>
+</head>
+<body>
+ <div class="container">
+ <h1>Welcome to Al Nafi Production Web Server!</h1>
+ <div class="info">
+ <h3>Server Information:</h3>
+ <p><strong>Hostname:</strong> node1</p>
+ <p><strong>IP Address:</strong> 192.168.1.10</p>
+ <p><strong>Operating System:</strong> CentOS 8</p>
+ <p><strong>Server Admin:</strong> webmaster@alnafi.com</p>
+ <p><strong>Deployed by:</strong> Ansible Role</p>
+ </div>
+ <p>This web server was configured automatically using Ansible roles!</p>
+ <p><em>Powered by Al Nafi Technology Solutions</em></p>
+ </div>
+</body>
+</html>
+
+-bash-4.2$ curl http://192.168.1.11
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Al Nafi Technology Solutions - Web Server</title>
+ ...
+ <p><strong>Hostname:</strong> node2</p>
+ <p><strong>IP Address:</strong> 192.168.1.11</p>
+ <p><strong>Operating System:</strong> CentOS 8</p>
+ ...
+</head>
+</html>
+
+-bash-4.2$ ansible web_servers -i inventory.ini -m service -a "name=httpd state=started" --become
+node1 | SUCCESS => {"changed": false, "name": "httpd", "state": "started", "status": "enabled"}
+node2 | SUCCESS => {"changed": false, "name": "httpd", "state": "started", "status": "enabled"}
+
+-bash-4.2$ ansible web_servers -i inventory.ini -m shell -a "httpd -t" --become
+node1 | SUCCESS | rc=0 >>
+Syntax OK
+node2 | SUCCESS | rc=0 >>
+Syntax OK
+
+
+PLAY [Complete Web Server Deployment] ******************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [node1]
+ok: [node2]
+
+TASK [common : Update system packages] *****************************************
+ok: [node1]
+ok: [node2]
+
+TASK [common : Install common packages] ****************************************
+changed: [node1]
+changed: [node2]
+
+TASK [common : Set timezone] ***************************************************
+ok: [node1]
+ok: [node2]
+
+TASK [apache-webserver : Install Apache HTTP Server] ***************************
+ok: [node1]
+ok: [node2]
+
+TASK [apache-webserver : Start and enable Apache service] **********************
+ok: [node1]
+ok: [node2]
+
+TASK [apache-webserver : Create document root directory] ***********************
+ok: [node1]
+ok: [node2]
+
+TASK [apache-webserver : Deploy custom index.html from template] ***************
+ok: [node1]
+ok: [node2]
+
+TASK [apache-webserver : Configure Apache virtual host] ************************
+ok: [node1]
+ok: [node2]
+
+TASK [apache-webserver : Open firewall for HTTP traffic] ***********************
+fatal: [node1]: FAILED! => {"changed": false, "msg": "FirewallD is not running"}
+...ignoring
+fatal: [node2]: FAILED! => {"changed": false, "msg": "FirewallD is not running"}
+...ignoring
+
+TASK [Display deployment completion message] ***********************************
+ok: [node1] => {
+  "msg": "Web server deployment completed successfully on node1"
+}
+ok: [node2] => {
+  "msg": "Web server deployment completed successfully on node2"
+}
+
+PLAY RECAP *********************************************************************
+node1                      : ok=10 changed=1 unreachable=0 failed=0 ignored=1
+node2                      : ok=10 changed=1 unreachable=0 failed=0 ignored=1
+
+
+PLAY [Validate Apache Web Server Deployment] ***********************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Check if Apache is running] **********************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Verify Apache service status] ********************************************
+ok: [node1] => {
+  "changed": false,
+  "msg": "Apache service is running successfully"
+}
+ok: [node2] => {
+  "changed": false,
+  "msg": "Apache service is running successfully"
+}
+
+TASK [Test HTTP response] ******************************************************
+ok: [node1 -> localhost]
+ok: [node2 -> localhost]
+
+TASK [Check if custom index.html exists] ***************************************
+ok: [node1]
+ok: [node2]
+
+TASK [Verify index.html was created] *******************************************
+ok: [node1] => {
+  "changed": false,
+  "msg": "Custom index.html file exists"
+}
+ok: [node2] => {
+  "changed": false,
+  "msg": "Custom index.html file exists"
+}
+
+PLAY RECAP *********************************************************************
+node1                      : ok=6 changed=0 unreachable=0 failed=0
+node2                      : ok=6 changed=0 unreachable=0 failed=0
