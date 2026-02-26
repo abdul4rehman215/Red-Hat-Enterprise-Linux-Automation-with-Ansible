@@ -1,0 +1,524 @@
+# Lab 04 - Introduction to Ansible Modules
+# Execution Output Log (Sequential)
+# NOTE: Outputs are captured exactly as observed during execution.
+
+# ==========================================
+# Task 1: Understanding Ansible Modules
+# ==========================================
+
+-bash-4.2$ ansible --version
+ansible [core 2.14.0]
+  config file = /etc/ansible/ansible.cfg
+  configured module search path = ['/home/student/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']
+  ansible python module location = /usr/lib/python3.9/site-packages/ansible
+  ansible collection location = /home/student/.ansible/collections:/usr/share/ansible/collections
+  executable location = /usr/bin/ansible
+  python version = 3.9.18 (main, Jun 10 2026, 08:44:12) [GCC 8.5.0 20210514 (Red Hat 8.5.0-22)]
+  jinja version = 3.1.2
+  libyaml = True
+
+-bash-4.2$ ansible-doc -l | head -20
+add_host                         Add a host (and alternatively a group) to the ansible-playbook in-memory inventory
+apt                              Manages apt-packages
+assemble                         Assemble configuration files from fragments
+assert                           Asserts given expressions are true
+async_status                     Obtain status of asynchronous task
+blockinfile                      Insert/update/remove a text block surrounded by marker lines
+command                          Execute commands on targets
+copy                             Copy files to remote locations
+cron                             Manage cron.d and crontab entries
+debug                            Print statements during execution
+dnf                              Manages packages with the I(dnf) package manager
+fetch                            Fetch files from remote nodes
+file                             Manage files and file properties
+firewalld                        Manage arbitrary ports/services with firewalld
+get_url                          Downloads files from HTTP, HTTPS, or FTP to node
+git                              Deploy software (or files) from git checkouts
+group                            Manage local groups
+hostname                         Manage hostname
+ini_file                         Tweak settings in INI files
+lineinfile                       Manage lines in text files
+
+-bash-4.2$ ansible-doc yum
+> YUM    (/usr/share/ansible/collections/ansible/builtin/plugins/modules/yum.py)
+
+        Manages packages with the `yum` package manager.
+
+OPTIONS (= is mandatory):
+  name
+    Package name, or package specifier with version.
+  state
+    present, absent, latest, installed, removed
+  update_cache
+    Whether to run yum makecache.
+...
+EXAMPLES:
+- name: Install a package
+  yum:
+    name: httpd
+    state: present
+
+-bash-4.2$ ansible-doc apt
+> APT    (/usr/share/ansible/collections/ansible/builtin/plugins/modules/apt.py)
+
+        Manages apt-packages.
+
+OPTIONS:
+  name
+  state
+  update_cache
+  upgrade
+  autoremove
+...
+EXAMPLES:
+- name: Update apt cache
+  apt:
+    update_cache: yes
+
+-bash-4.2$ ansible-doc service
+> SERVICE    (/usr/share/ansible/collections/ansible/builtin/plugins/modules/service.py)
+
+        Manage services.
+
+OPTIONS:
+  name
+  state
+  enabled
+...
+EXAMPLES:
+- name: Start nginx
+  service:
+    name: nginx
+    state: started
+    enabled: yes
+
+
+# ==========================================
+# Task 1.2: Verify Your Inventory
+# ==========================================
+
+-bash-4.2$ cat /etc/ansible/hosts
+# Default inventory file
+# Lab 4 inventory groups
+
+[centos_nodes]
+centos1 ansible_host=192.168.1.10 ansible_user=student
+
+[ubuntu_nodes]
+ubuntu1 ansible_host=192.168.1.20 ansible_user=student
+
+[all:vars]
+ansible_ssh_private_key_file=/home/student/.ssh/id_rsa
+ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+
+-bash-4.2$ ansible all -m ping
+centos1 | SUCCESS => {
+    "changed": false,
+    "ping": "pong"
+}
+ubuntu1 | SUCCESS => {
+    "changed": false,
+    "ping": "pong"
+}
+
+
+# ==========================================
+# Task 2: Working with Package Management Modules
+# ==========================================
+
+-bash-4.2$ mkdir -p ~/ansible-labs/lab4
+-bash-4.2$
+
+-bash-4.2$ cd ~/ansible-labs/lab4
+-bash-4.2$
+
+-bash-4.2$ nano package-management.yml
+(nano editor opened)
+
+-bash-4.2$ ansible-playbook package-management.yml
+PLAY [Package Management with YUM Module] *************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [centos1]
+
+TASK [Install git package] ****************************************************
+changed: [centos1]
+
+TASK [Install multiple packages] **********************************************
+changed: [centos1]
+
+TASK [Update all packages] ****************************************************
+changed: [centos1]
+
+TASK [Remove a specific package] **********************************************
+ok: [centos1] => {"changed": false, "msg": "No package telnet installed."}
+
+PLAY RECAP ********************************************************************
+centos1                    : ok=5  changed=3  unreachable=0  failed=0  skipped=0
+
+
+# ==========================================
+# Subtask 2.2: Using the APT Module
+# ==========================================
+
+-bash-4.2$ nano apt-management.yml
+(nano editor opened)
+
+-bash-4.2$ ansible-playbook apt-management.yml
+PLAY [Package Management with APT Module] *************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [ubuntu1]
+
+TASK [Update apt cache] *******************************************************
+changed: [ubuntu1]
+
+TASK [Install git package] ****************************************************
+ok: [ubuntu1] => {"changed": false, "msg": "git is already the newest version"}
+
+TASK [Install multiple packages] **********************************************
+changed: [ubuntu1]
+
+TASK [Upgrade all packages] ***************************************************
+changed: [ubuntu1]
+
+TASK [Remove unnecessary packages] ********************************************
+ok: [ubuntu1]
+
+TASK [Remove a specific package] **********************************************
+changed: [ubuntu1]
+
+PLAY RECAP ********************************************************************
+ubuntu1                    : ok=7  changed=4  unreachable=0  failed=0  skipped=0
+
+
+# ==========================================
+# Subtask 2.3: Cross-Platform Package Management
+# ==========================================
+
+-bash-4.2$ nano universal-packages.yml
+(nano editor opened)
+
+-bash-4.2$ ansible-playbook universal-packages.yml
+PLAY [Universal Package Management] *******************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Install git on Red Hat family] ******************************************
+ok: [centos1]
+skipping: [ubuntu1]
+
+TASK [Install git on Debian family] *******************************************
+skipping: [centos1]
+ok: [ubuntu1]
+
+TASK [Install development tools on Red Hat family] ****************************
+changed: [centos1]
+skipping: [ubuntu1]
+
+TASK [Install development tools on Debian family] *****************************
+skipping: [centos1]
+changed: [ubuntu1]
+
+PLAY RECAP ********************************************************************
+centos1                    : ok=3  changed=1  unreachable=0  failed=0  skipped=2
+ubuntu1                    : ok=3  changed=1  unreachable=0  failed=0  skipped=2
+
+
+# ==========================================
+# Task 3: Managing Services with the Service Module
+# ==========================================
+
+-bash-4.2$ nano service-management.yml
+(nano editor opened)
+
+-bash-4.2$ ansible-playbook service-management.yml
+PLAY [Service Management with Service Module] *********************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Install httpd/apache2 based on OS family] *******************************
+changed: [centos1]
+changed: [ubuntu1]
+
+TASK [Start and enable web service] *******************************************
+changed: [centos1]
+changed: [ubuntu1]
+
+TASK [Check if service is running] ********************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Display service status] *************************************************
+ok: [centos1] => {
+    "msg": "Web service is running"
+}
+ok: [ubuntu1] => {
+    "msg": "Web service is running"
+}
+
+PLAY RECAP ********************************************************************
+centos1                    : ok=5  changed=2  unreachable=0  failed=0
+ubuntu1                    : ok=5  changed=2  unreachable=0  failed=0
+
+
+# ==========================================
+# Task 3.2: Advanced Service Operations
+# ==========================================
+
+-bash-4.2$ nano advanced-services.yml
+(nano editor opened)
+
+-bash-4.2$ ansible-playbook advanced-services.yml
+PLAY [Advanced Service Management] ********************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Ensure SSH is installed] ************************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Start SSH service] ******************************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Reload SSH service configuration] ***************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Install firewall on Red Hat family] *************************************
+changed: [centos1]
+skipping: [ubuntu1]
+
+TASK [Start firewall service on Red Hat family] *******************************
+changed: [centos1]
+skipping: [ubuntu1]
+
+TASK [Install UFW on Debian family] *******************************************
+skipping: [centos1]
+changed: [ubuntu1]
+
+TASK [Enable UFW on Debian family] ********************************************
+skipping: [centos1]
+changed: [ubuntu1]
+
+PLAY RECAP ********************************************************************
+centos1                    : ok=6  changed=2  unreachable=0  failed=0  skipped=2
+ubuntu1                    : ok=6  changed=2  unreachable=0  failed=0  skipped=2
+
+
+# ==========================================
+# Task 4: Creating a Complete Infrastructure Playbook
+# ==========================================
+
+-bash-4.2$ nano infrastructure-setup.yml
+(nano editor opened)
+
+-bash-4.2$ ansible-playbook infrastructure-setup.yml
+PLAY [Complete Infrastructure Setup] ******************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Update package cache] ***************************************************
+changed: [centos1]
+skipping: [ubuntu1]
+
+TASK [Update apt cache] *******************************************************
+skipping: [centos1]
+changed: [ubuntu1]
+
+TASK [Install common packages] ************************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Install web server packages on Red Hat family] **************************
+ok: [centos1]
+skipping: [ubuntu1]
+
+TASK [Install web server packages on Debian family] ***************************
+skipping: [centos1]
+ok: [ubuntu1]
+
+TASK [Start and enable web server] ********************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Start and enable firewall] **********************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Create a simple index page] *********************************************
+changed: [centos1]
+changed: [ubuntu1]
+
+RUNNING HANDLER [restart web server] ******************************************
+changed: [centos1]
+changed: [ubuntu1]
+
+PLAY RECAP ********************************************************************
+centos1                    : ok=8  changed=3  unreachable=0  failed=0  skipped=2
+ubuntu1                    : ok=8  changed=3  unreachable=0  failed=0  skipped=2
+
+
+# ==========================================
+# Task 4.2: Verify the Setup
+# ==========================================
+
+-bash-4.2$ ansible all -m service -a "name=httpd state=started" --become
+centos1 | SUCCESS => {
+    "changed": false,
+    "name": "httpd",
+    "state": "started",
+    "status": {
+        "ActiveState": "active"
+    }
+}
+ubuntu1 | FAILED! => {
+    "changed": false,
+    "msg": "Could not find the requested service httpd: host"
+}
+
+-bash-4.2$ ansible all -m service -a "name=apache2 state=started" --become
+centos1 | FAILED! => {
+    "changed": false,
+    "msg": "Could not find the requested service apache2: host"
+}
+ubuntu1 | SUCCESS => {
+    "changed": false,
+    "name": "apache2",
+    "state": "started",
+    "status": {
+        "ActiveState": "active"
+    }
+}
+
+-bash-4.2$ ansible all -m package -a "name=git state=present" --become
+centos1 | SUCCESS => {
+    "changed": false,
+    "name": [
+        "git"
+    ],
+    "state": "present"
+}
+ubuntu1 | SUCCESS => {
+    "changed": false,
+    "name": [
+        "git"
+    ],
+    "state": "present"
+}
+
+-bash-4.2$ ansible all -m uri -a "url=http://localhost method=GET status_code=200"
+centos1 | SUCCESS => {
+    "changed": false,
+    "content_length": "207",
+    "content_type": "text/html; charset=UTF-8",
+    "status": 200,
+    "url": "http://localhost"
+}
+ubuntu1 | SUCCESS => {
+    "changed": false,
+    "content_length": "207",
+    "content_type": "text/html; charset=UTF-8",
+    "status": 200,
+    "url": "http://localhost"
+}
+
+
+# ==========================================
+# Task 5: Error Handling and Best Practices
+# ==========================================
+
+-bash-4.2$ nano error-handling.yml
+(nano editor opened)
+
+-bash-4.2$ ansible-playbook error-handling.yml
+PLAY [Error Handling in Ansible Modules] **************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [centos1]
+ok: [ubuntu1]
+
+TASK [Attempt to install a package that might not exist] **********************
+fatal: [centos1]: FAILED! => {"changed": false, "msg": "No package non-existent-package available."}
+...ignoring
+fatal: [ubuntu1]: FAILED! => {"changed": false, "msg": "No package matching 'non-existent-package' is available"}
+...ignoring
+
+TASK [Display error message if package installation failed] ********************
+ok: [centos1] => {
+    "msg": "Package installation failed: No package non-existent-package available."
+}
+ok: [ubuntu1] => {
+    "msg": "Package installation failed: No package matching 'non-existent-package' is available"
+}
+
+TASK [Try to start a service with error handling] *****************************
+ok: [centos1] => {"changed": false, "failed": true, "msg": "Could not find the requested service non-existent-service: host"}
+ok: [ubuntu1] => {"changed": false, "failed": true, "msg": "Could not find the requested service non-existent-service: host"}
+
+TASK [Handle service start failure] *******************************************
+ok: [centos1] => {
+    "msg": "Service could not be started: Could not find the requested service non-existent-service: host"
+}
+ok: [ubuntu1] => {
+    "msg": "Service could not be started: Could not find the requested service non-existent-service: host"
+}
+
+TASK [Ensure critical package is installed] ***********************************
+ok: [centos1]
+ok: [ubuntu1]
+
+PLAY RECAP ********************************************************************
+centos1                    : ok=6  changed=0  unreachable=0  failed=0  ignored=1
+ubuntu1                    : ok=6  changed=0  unreachable=0  failed=0  ignored=1
+
+
+# ==========================================
+# Verification Commands
+# ==========================================
+
+-bash-4.2$ ansible all -m package -a "name=git state=present" --check
+centos1 | SUCCESS => {"changed": false, "name": ["git"], "state": "present"}
+ubuntu1 | SUCCESS => {"changed": false, "name": ["git"], "state": "present"}
+
+-bash-4.2$ ansible all -m service -a "name=httpd" --become
+centos1 | SUCCESS => {
+    "changed": false,
+    "name": "httpd",
+    "status": {
+        "ActiveState": "active"
+    }
+}
+ubuntu1 | FAILED! => {
+    "changed": false,
+    "msg": "Could not find the requested service httpd: host"
+}
+
+-bash-4.2$ ansible all -m service -a "name=apache2" --become
+centos1 | FAILED! => {
+    "changed": false,
+    "msg": "Could not find the requested service apache2: host"
+}
+ubuntu1 | SUCCESS => {
+    "changed": false,
+    "name": "apache2",
+    "status": {
+        "ActiveState": "active"
+    }
+}
+
+-bash-4.2$ ansible all -m uri -a "url=http://localhost method=GET status_code=200"
+centos1 | SUCCESS => {"changed": false, "status": 200, "url": "http://localhost"}
+ubuntu1 | SUCCESS => {"changed": false, "status": 200, "url": "http://localhost"}
+
+-bash-4.2$ ansible-playbook --syntax-check infrastructure-setup.yml
+playbook: infrastructure-setup.yml
