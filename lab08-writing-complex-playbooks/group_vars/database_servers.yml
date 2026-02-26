@@ -1,0 +1,10 @@
+---
+mysql_root_password: "DatabaseRoot123!"
+mysql_database: "production_db"
+mysql_user: "app_user"
+mysql_password: "AppUser123!"
+mysql_bind_address: "0.0.0.0"
+
+# Performance tuning
+mysql_max_connections: 100
+mysql_innodb_buffer_pool_size: "128M"
