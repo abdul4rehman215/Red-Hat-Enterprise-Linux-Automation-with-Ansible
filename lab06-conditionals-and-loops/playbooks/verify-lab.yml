@@ -1,0 +1,38 @@
+# playbooks/lab6/verify-lab.yml
+---
+- name: Lab 6 Verification
+  hosts: all
+  gather_facts: yes
+  become: yes
+
+  tasks:
+    - name: Check if web server is installed
+      package_facts:
+
+    - name: Verify conditional package installation
+      debug:
+        msg: "Apache is {{ 'installed' if 'httpd' in ansible_facts.packages or 'apache2' in ansible_facts.packages else 'not installed' }}"
+
+    - name: Check created users
+      getent:
+        database: passwd
+        key: "{{ item }}"
+      loop:
+        - alice
+        - bob
+        - charlie
+      ignore_errors: yes
+
+    - name: Verify directory creation
+      stat:
+        path: "/opt/{{ item }}"
+      loop:
+        - app1
+        - app2
+        - app3
+      register: directory_stats
+
+    - name: Report directory status
+      debug:
+        msg: "Directory /opt/{{ item.item }} {{ 'exists' if item.stat.exists else 'does not exist' }}"
+      loop: "{{ directory_stats.results }}"
