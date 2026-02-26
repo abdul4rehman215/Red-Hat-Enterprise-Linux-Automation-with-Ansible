@@ -1,0 +1,3 @@
+vault_database_password: "ProdDBPassword456"
+vault_api_secret: "prod-secret-key-abc"
+vault_ssl_key: "prod-ssl-private-key"
