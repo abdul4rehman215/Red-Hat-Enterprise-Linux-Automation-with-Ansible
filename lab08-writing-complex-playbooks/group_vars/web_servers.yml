@@ -1,0 +1,9 @@
+---
+web_user: "webadmin"
+document_root: "/var/www/html"
+app_name: "mywebapp"
+server_name: "{{ inventory_hostname }}.example.com"
+
+# Apache tuning
+apache_max_request_workers: 150
+apache_server_limit: 16
