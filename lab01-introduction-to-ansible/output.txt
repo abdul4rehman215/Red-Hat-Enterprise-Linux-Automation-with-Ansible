@@ -1,0 +1,102 @@
+# Lab 01 - Introduction to Ansible
+# Execution Output Log (Sequential)
+# NOTE: Outputs are captured exactly as observed during execution.
+
+# ================================
+# Task 1: Install Ansible
+# ================================
+
+toor@ip-172-31-10-155:~$ sudo apt update
+Hit:1 http://archive.ubuntu.com/ubuntu noble InRelease
+Get:2 http://archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+Get:3 http://archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+Get:4 http://security.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+Fetched 378 kB in 2s (192 kB/s)
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+14 packages can be upgraded. Run 'apt list --upgradable' to see them.
+
+toor@ip-172-31-10-155:~$ sudo apt install ansible -y
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+The following additional packages will be installed:
+  ansible-core python3-argcomplete python3-jinja2 python3-requests python3-yaml
+Suggested packages:
+  sshpass
+The following NEW packages will be installed:
+  ansible ansible-core python3-argcomplete python3-jinja2 python3-requests python3-yaml
+0 upgraded, 6 newly installed, 0 to remove and 14 not upgraded.
+Need to get 14.2 MB of archives.
+After this operation, 92.5 MB of additional disk space will be used.
+Get:1 http://archive.ubuntu.com/ubuntu noble/universe amd64 ansible-core all 2.16.3-1 [2,346 kB]
+Get:2 http://archive.ubuntu.com/ubuntu noble/universe amd64 ansible all 7.7.0+dfsg-1 [11.5 MB]
+Get:3 http://archive.ubuntu.com/ubuntu noble/main amd64 python3-yaml amd64 6.0.1-2build2 [108 kB]
+Get:4 http://archive.ubuntu.com/ubuntu noble/main amd64 python3-jinja2 all 3.1.2-1 [108 kB]
+Get:5 http://archive.ubuntu.com/ubuntu noble/main amd64 python3-requests all 2.31.0+dfsg-1 [65.8 kB]
+Get:6 http://archive.ubuntu.com/ubuntu noble/universe amd64 python3-argcomplete all 3.1.4-1 [34.9 kB]
+Fetched 14.2 MB in 3s (4,812 kB/s)
+Selecting previously unselected package python3-yaml.
+(Reading database ... 68425 files and directories currently installed.)
+Preparing to unpack .../python3-yaml_6.0.1-2build2_amd64.deb ...
+Unpacking python3-yaml (6.0.1-2build2) ...
+Selecting previously unselected package python3-jinja2.
+Preparing to unpack .../python3-jinja2_3.1.2-1_all.deb ...
+Unpacking python3-jinja2 (3.1.2-1) ...
+Selecting previously unselected package python3-requests.
+Preparing to unpack .../python3-requests_2.31.0+dfsg-1_all.deb ...
+Unpacking python3-requests (2.31.0+dfsg-1) ...
+Selecting previously unselected package python3-argcomplete.
+Preparing to unpack .../python3-argcomplete_3.1.4-1_all.deb ...
+Unpacking python3-argcomplete (3.1.4-1) ...
+Selecting previously unselected package ansible-core.
+Preparing to unpack .../ansible-core_2.16.3-1_all.deb ...
+Unpacking ansible-core (2.16.3-1) ...
+Selecting previously unselected package ansible.
+Preparing to unpack .../ansible_7.7.0+dfsg-1_all.deb ...
+Unpacking ansible (7.7.0+dfsg-1) ...
+Setting up python3-yaml (6.0.1-2build2) ...
+Setting up python3-jinja2 (3.1.2-1) ...
+Setting up python3-requests (2.31.0+dfsg-1) ...
+Setting up python3-argcomplete (3.1.4-1) ...
+Setting up ansible-core (2.16.3-1) ...
+Setting up ansible (7.7.0+dfsg-1) ...
+Processing triggers for man-db (2.12.0-4build2) ...
+
+toor@ip-172-31-10-155:~$ ansible --version
+ansible [core 2.16.3]
+  config file = /etc/ansible/ansible.cfg
+  configured module search path = ['/home/toor/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']
+  ansible python module location = /usr/lib/python3/dist-packages/ansible
+  ansible collection location = /home/toor/.ansible/collections:/usr/share/ansible/collections
+  executable location = /usr/bin/ansible
+  python version = 3.12.3 (main, Aug  7 2024, 11:00:00) [GCC 13.2.0] (/usr/bin/python3)
+  jinja version = 3.1.2
+  libyaml = True
+
+
+# ================================
+# Task 2: Set up Basic Inventory
+# ================================
+
+toor@ip-172-31-10-155:~$ sudo nano /etc/ansible/hosts
+(nano editor opened)
+
+toor@ip-172-31-10-155:~$ sudo cat /etc/ansible/hosts
+[local]
+localhost ansible_connection=local
+
+
+# ================================
+# Task 3: Run Simple Ping Command
+# ================================
+
+toor@ip-172-31-10-155:~$ ansible local -m ping
+localhost | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/bin/python3"
+    },
+    "changed": false,
+    "ping": "pong"
+}
