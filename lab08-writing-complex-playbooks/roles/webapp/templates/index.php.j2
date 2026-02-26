@@ -1,0 +1,42 @@
+<?php
+require_once 'config.php';
+
+echo "<h1>Welcome to " . APP_NAME . "</h1>";
+echo "<p>Version: " . APP_VERSION . "</p>";
+echo "<p>Server: " . gethostname() . "</p>";
+
+try {
+ $pdo = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
+ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+ echo "<div style='color: green;'>";
+ echo "<h2>✓ Database Connection Successful!</h2>";
+ echo "<p>Connected to database: " . DB_NAME . "</p>";
+ echo "<p>Database server: " . DB_HOST . "</p>";
+ echo "</div>";
+
+ // Create a simple table if it doesn't exist
+ $pdo->exec("CREATE TABLE IF NOT EXISTS visitors (
+ id INT AUTO_INCREMENT PRIMARY KEY,
+ visit_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+ ip_address VARCHAR(45)
+ )");
+
+ // Log this visit
+ $stmt = $pdo->prepare("INSERT INTO visitors (ip_address) VALUES (?)");
+ $stmt->execute([$_SERVER['REMOTE_ADDR']]);
+
+ // Show visitor count
+ $stmt = $pdo->query("SELECT COUNT(*) as count FROM visitors");
+ $count = $stmt->fetch()['count'];
+ echo "<p>Total visits: " . $count . "</p>";
+
+} catch(PDOException $e) {
+ echo "<div style='color: red;'>";
+ echo "<h2>✗ Database Connection Failed!</h2>";
+ echo "<p>Error: " . $e->getMessage() . "</p>";
+ echo "</div>";
+}
+?>
+<hr>
+<p><a href="dbtest.php">Test Database Connection</a></p>
