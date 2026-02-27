@@ -1,0 +1,17 @@
+<html>
+<head><title>Fork Comparison</title></head>
+<body>
+<h1>Fork Performance Comparison</h1>
+<table border="1" cellpadding="6">
+<tr><th>Forks</th><th>Execution Time (s)</th><th>Status</th><th>Tasks Executed</th></tr>
+{% for m in performance_metrics %}
+<tr>
+  <td>{{ m.forks }}</td>
+  <td>{{ m.execution_time }}</td>
+  <td>{{ m.status }}</td>
+  <td>{{ m.tasks_executed }}</td>
+</tr>
+{% endfor %}
+</table>
+</body>
+</html>
