@@ -1,0 +1,12 @@
+---
+- name: Ensure basic security packages are installed
+  package:
+    name:
+      - firewalld
+    state: present
+
+- name: Ensure firewalld is running
+  service:
+    name: firewalld
+    state: started
+    enabled: yes
