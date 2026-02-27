@@ -1,0 +1,7 @@
+---
+- name: Install basic monitoring tools
+  package:
+    name:
+      - htop
+      - iotop
+    state: present
