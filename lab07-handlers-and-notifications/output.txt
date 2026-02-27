@@ -1,0 +1,113 @@
+# Lab 07 - Handlers and Notifications
+# Execution Output Log (Sequential)
+
+# ==========================================
+# Real Lab Prep: Install required tools
+# ==========================================
+
+toor@ip-172-31-10-187:~$ sudo apt update
+Hit:1 http://archive.ubuntu.com/ubuntu noble InRelease
+Get:2 http://archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+Get:3 http://archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+Get:4 http://security.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+Fetched 378 kB in 1s (430 kB/s)
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+10 packages can be upgraded. Run 'apt list --upgradable' to see them.
+
+toor@ip-172-31-10-187:~$ sudo apt install -y ansible nginx
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+The following additional packages will be installed:
+  ansible-core python3-argcomplete python3-jinja2 python3-requests python3-yaml nginx-common
+Suggested packages:
+  sshpass fcgiwrap
+The following NEW packages will be installed:
+  ansible ansible-core nginx nginx-common python3-argcomplete python3-jinja2 python3-requests python3-yaml
+0 upgraded, 8 newly installed, 0 to remove and 10 not upgraded.
+Need to get 15.6 MB of archives.
+After this operation, 102 MB of additional disk space will be used.
+Get:1 http://archive.ubuntu.com/ubuntu noble/universe all ansible-core 2.16.3-1 [2,346 kB]
+Get:2 http://archive.ubuntu.com/ubuntu noble/universe all ansible 7.7.0+dfsg-1 [11.5 MB]
+Get:3 http://archive.ubuntu.com/ubuntu noble/main amd64 nginx-common 1.24.0-2ubuntu2 [120 kB]
+Get:4 http://archive.ubuntu.com/ubuntu noble/main amd64 nginx 1.24.0-2ubuntu2 [387 kB]
+...
+Setting up nginx-common (1.24.0-2ubuntu2) ...
+Setting up nginx (1.24.0-2ubuntu2) ...
+Created symlink /etc/systemd/system/multi-user.target.wants/nginx.service → /usr/lib/systemd/system/nginx.service.
+Setting up ansible-core (2.16.3-1) ...
+Setting up ansible (7.7.0+dfsg-1) ...
+Processing triggers for man-db (2.12.0-4build2) ...
+
+toor@ip-172-31-10-187:~$ ansible --version
+ansible [core 2.16.3]
+  config file = /etc/ansible/ansible.cfg
+  configured module search path = ['/home/toor/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']
+  ansible python module location = /usr/lib/python3/dist-packages/ansible
+  ansible collection location = /home/toor/.ansible/collections:/usr/share/ansible/collections
+  executable location = /usr/bin/ansible
+  python version = 3.12.3 (/usr/bin/python3)
+  jinja version = 3.1.2
+  libyaml = True
+
+
+# ==========================================
+# Task 1: Create lab directory and playbook
+# ==========================================
+
+toor@ip-172-31-10-187:~$ mkdir -p ~/lab7-handlers
+toor@ip-172-31-10-187:~$
+
+toor@ip-172-31-10-187:~$ cd ~/lab7-handlers
+toor@ip-172-31-10-187:~/lab7-handlers$
+
+toor@ip-172-31-10-187:~/lab7-handlers$ nano playbook.yml
+(nano editor opened)
+
+toor@ip-172-31-10-187:~/lab7-handlers$ ansible-playbook playbook.yml
+PLAY [Configure nginx] ********************************************************
+
+TASK [Change nginx configuration] *********************************************
+changed: [localhost]
+
+RUNNING HANDLER [restart nginx] ***********************************************
+changed: [localhost]
+
+PLAY RECAP ********************************************************************
+localhost                  : ok=2  changed=2  unreachable=0  failed=0  skipped=0
+
+
+# ==========================================
+# Task 2: Run playbook again (handler efficiency)
+# ==========================================
+
+toor@ip-172-31-10-187:~/lab7-handlers$ ansible-playbook playbook.yml
+PLAY [Configure nginx] ********************************************************
+
+TASK [Change nginx configuration] *********************************************
+ok: [localhost]
+
+PLAY RECAP ********************************************************************
+localhost                  : ok=1  changed=0  unreachable=0  failed=0  skipped=0
+
+
+# ==========================================
+# Verification: nginx service status
+# ==========================================
+
+toor@ip-172-31-10-187:~/lab7-handlers$ systemctl status nginx --no-pager
+● nginx.service - A high performance web server and a reverse proxy server
+     Loaded: loaded (/usr/lib/systemd/system/nginx.service; enabled; preset: enabled)
+     Active: active (running) since Sun 2026-08-18 12:34:12 UTC; 2min 10s ago
+       Docs: man:nginx(8)
+   Main PID: 2149 (nginx)
+      Tasks: 2 (limit: 2234)
+     Memory: 3.4M (peak: 3.7M)
+        CPU: 45ms
+     CGroup: /system.slice/nginx.service
+             ├─2149 "nginx: master process /usr/sbin/nginx -g daemon on; master_process on;"
+             └─2150 "nginx: worker process"
+
+Aug 18 12:34:12 ip-172-31-10-187 systemd[1]: Started nginx.service - A high performance web server and a reverse proxy server.
