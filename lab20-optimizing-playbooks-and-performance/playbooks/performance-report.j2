@@ -1,0 +1,18 @@
+<html>
+<head><title>Ansible Performance Report</title></head>
+<body>
+<h1>Ansible Performance Report</h1>
+<p>Total Test Time: {{ total_test_time }} seconds</p>
+<table border="1" cellpadding="6">
+  <tr><th>Test</th><th>Execution Time (s)</th><th>Status</th><th>Output Lines</th></tr>
+  {% for r in test_results %}
+  <tr>
+    <td>{{ r.name }}</td>
+    <td>{{ r.execution_time }}</td>
+    <td>{{ r.status }}</td>
+    <td>{{ r.output_lines }}</td>
+  </tr>
+  {% endfor %}
+</table>
+</body>
+</html>
