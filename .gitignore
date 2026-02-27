@@ -1,0 +1,122 @@
+# =========================================================
+# OS / Editor Junk
+# =========================================================
+.DS_Store
+Thumbs.db
+*~
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# =========================================================
+# Ansible Runtime Artifacts
+# =========================================================
+*.retry
+.retry/
+ansible.log
+*.log
+*.out
+*.tmp
+*.cache
+.facts/
+.fact_cache/
+inventory_cache/
+**/ansible_facts_cache/
+
+# =========================================================
+# Sensitive Files (DO NOT COMMIT)
+# =========================================================
+*.pem
+*.key
+*.pub
+id_rsa*
+.env
+.vault_password
+*.vault_pass
+vault_pass.txt
+*decrypted*
+*plain_secrets*
+secrets*.yml.bak
+
+# IMPORTANT:
+# Do NOT ignore encrypted vault files intentionally committed
+# Example (keep these tracked):
+# group_vars/*/vault.yml
+# vars/*_secrets.yml
+
+# =========================================================
+# Backup Files (Created by template/copy/lineinfile)
+# =========================================================
+*.bak
+*.backup
+*.orig
+*.back
+*.old
+*.conf.*
+
+# =========================================================
+# Reports & Generated Outputs
+# =========================================================
+reports/
+report/
+backup/
+database-backups/
+db-backups/
+ansible-benchmarks/
+ansible-performance/
+
+deployment-report.txt
+installation_summary_*.txt
+*_package_report.txt
+*_report.txt
+*_network_report.txt
+*firewall-backup*.txt
+benchmark_report_*.txt
+run_*_output.log
+dashboard-data.json
+system-metrics.log
+monitor.pid
+fork-comparison.html
+performance-report-*.html
+
+# =========================================================
+# Database Dumps
+# =========================================================
+*.sql
+*.sql.gz
+mysql_backup_*.sql.gz
+postgresql_backup_*.sql.gz
+mysql-backup.log
+postgresql-backup.log
+
+# =========================================================
+# Archives & Compressed Files
+# =========================================================
+*.tar.gz
+*.zip
+*.gz
+
+# =========================================================
+# Python Artifacts
+# =========================================================
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+pip-wheel-metadata/
+
+# =========================================================
+# Optional: Ignore local inventories with real IPs
+# (Uncomment if needed)
+# =========================================================
+# inventory.ini
+# hosts.ini
+# inventory/
+# inventories/
+
+# =========================================================
+# Temporary Directories
+# =========================================================
+/tmp/
