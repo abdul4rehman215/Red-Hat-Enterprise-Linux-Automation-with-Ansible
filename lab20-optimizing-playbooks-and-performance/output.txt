@@ -1,0 +1,239 @@
+Lab 20 - Optimizing Playbooks and Performance
+Execution Output Log (Full)
+
+================================================================================
+Task 1.1 - Navigate Lab Directory + Review Monolithic Playbook
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ cd /home/ansible/lab20
+▶️ Output
+-bash-4.2$ 
+
+▶️ Command Executed
+-bash-4.2$ ls -la
+▶️ Output
+total 24
+drwxr-xr-x 3 ansible ansible  130 Aug 18 13:10 .
+drwxr-xr-x 8 ansible ansible  190 Aug 18 12:58 ..
+-rw-r--r-- 1 ansible ansible  431 Aug 18 12:58 inventory
+-rw-r--r-- 1 ansible ansible 6420 Aug 18 13:02 large-playbook.yml
+-rw-r--r-- 1 ansible ansible  218 Aug 18 12:58 README.md
+drwxr-xr-x 2 ansible ansible    6 Aug 18 13:10 roles
+
+▶️ Command Executed
+-bash-4.2$ cat large-playbook.yml
+▶️ Output
+# large-playbook.yml (monolithic example)
+# This playbook includes web server setup, database configuration, app deployment,
+# monitoring, logging and basic hardening all in one file (hard to maintain).
+
+---
+- name: Monolithic Web App Stack Deployment
+  hosts: all
+  become: yes
+  gather_facts: yes
+
+  tasks:
+    - name: Install web packages
+      yum:
+        name:
+          - httpd
+          - php
+          - mod_ssl
+        state: present
+
+    - name: Install database packages
+      yum:
+        name:
+          - mariadb-server
+          - mariadb
+          - python3-PyMySQL
+        state: present
+
+    - name: Start services
+      systemd:
+        name: "{{ item }}"
+        state: started
+        enabled: yes
+      loop:
+        - httpd
+        - mariadb
+
+    - name: Deploy application files
+      copy:
+        content: "<h1>Monolithic Deployment</h1>"
+        dest: /var/www/html/index.html
+        mode: '0644'
+
+    - name: Enable firewall services
+      firewalld:
+        service: "{{ item }}"
+        permanent: yes
+        state: enabled
+        immediate: yes
+      loop:
+        - http
+        - https
+        - mysql
+
+    - name: Install monitoring tools
+      yum:
+        name:
+          - htop
+          - iotop
+        state: present
+
+================================================================================
+Task 1.2 - Create Role Directory Structure
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ mkdir -p roles/{webserver,database,application,monitoring,security}/{tasks,handlers,templates,files,vars,defaults,meta}
+▶️ Output
+-bash-4.2$
+
+▶️ Command Executed
+-bash-4.2$ tree roles/
+▶️ Output
+roles/
+├── application
+│   ├── defaults
+│   ├── files
+│   ├── handlers
+│   ├── meta
+│   ├── tasks
+│   ├── templates
+│   └── vars
+├── database
+│   ├── defaults
+│   ├── files
+│   ├── handlers
+│   ├── meta
+│   ├── tasks
+│   ├── templates
+│   └── vars
+├── monitoring
+│   ├── defaults
+│   ├── files
+│   ├── handlers
+│   ├── meta
+│   ├── tasks
+│   ├── templates
+│   └── vars
+├── security
+│   ├── defaults
+│   ├── files
+│   ├── handlers
+│   ├── meta
+│   ├── tasks
+│   ├── templates
+│   └── vars
+└── webserver
+    ├── defaults
+    ├── files
+    ├── handlers
+    ├── meta
+    ├── tasks
+    ├── templates
+    └── vars
+
+40 directories, 0 files
+
+================================================================================
+Task 3.4 - Benchmarking Script Run (benchmark-playbooks.sh)
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ nano benchmark-playbooks.sh
+▶️ Output
+# (nano editor opened)
+# Saved: benchmark-playbooks.sh
+
+▶️ Command Executed
+-bash-4.2$ chmod +x benchmark-playbooks.sh
+▶️ Output
+-bash-4.2$
+
+▶️ Command Executed
+-bash-4.2$ ./benchmark-playbooks.sh
+▶️ Output
+Starting Ansible playbook benchmarks...
+Testing: Original Monolithic Playbook
+Playbook: large-playbook.yml
+Iterations: 3
+----------------------------------------
+ Run 1 of 3...
+ Completed in 9s
+ Run 2 of 3...
+ Completed in 8s
+ Run 3 of 3...
+ Completed in 8s
+ Average execution time: 8s
+ Successful runs: 3/3
+
+Testing: Role-based Optimized Playbook
+Playbook: optimized-playbook.yml
+Iterations: 3
+----------------------------------------
+ Run 1 of 3...
+ Completed in 6s
+ Run 2 of 3...
+ Completed in 6s
+ Run 3 of 3...
+ Completed in 5s
+ Average execution time: 5s
+ Successful runs: 3/3
+
+Testing: Asynchronous Execution Playbook
+Playbook: async-optimization.yml
+Iterations: 3
+----------------------------------------
+ Run 1 of 3...
+ Completed in 4s
+ Run 2 of 3...
+ Completed in 4s
+ Run 3 of 3...
+ Completed in 4s
+ Average execution time: 4s
+ Successful runs: 3/3
+
+Benchmark completed. Results saved to: /tmp/ansible-benchmarks/benchmark_report_20260227_113955.txt
+Individual run logs saved to: /tmp/ansible-benchmarks
+
+================================================================================
+Task 3.5 - Performance Analysis Run (analyze-performance.yml)
+================================================================================
+
+▶️ Command Executed
+-bash-4.2$ ansible-playbook analyze-performance.yml
+▶️ Output
+PLAY [Analyze Playbook Performance Results] ************************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [localhost]
+
+TASK [Find benchmark result files] *********************************************
+ok: [localhost]
+
+TASK [Read benchmark results] *************************************************
+ok: [localhost] => (item={'path': '/tmp/ansible-benchmarks/benchmark_report_20260227_113955.txt', 'mode': '0644', 'isreg': True, 'size': 834})
+
+TASK [Parse performance data] *************************************************
+ok: [localhost]
+
+TASK [Generate performance summary] ********************************************
+ok: [localhost] => {
+    "msg": "Performance Analysis Summary:\n============================\nTotal benchmark files analyzed: 1\nLatest benchmark: 20260227_113955\n\nRecommendations:\n- Use role-based playbooks for better maintainability\n- Implement async execution for long-running tasks\n- Optimize fork count based on your infrastructure\n- Use fact caching to reduce gathering overhead\n- Implement proper error handling and retries\n"
+}
+
+TASK [Create performance dashboard data] **************************************
+changed: [localhost]
+
+TASK [Display optimization recommendations] ***********************************
+ok: [localhost] => {
+    "msg": "Key Performance Optimization Techniques Applied:\n\n1. MODULARITY: Split monolithic playbooks into roles\n - Improved maintainability and reusability\n - Better error isolation and debugging\n - Parallel development capabilities\n\n2. ASYNCHRONOUS EXECUTION: Used async and poll for long tasks\n - Reduced total execution time\n - Better resource utilization\n - Improved user experience\n\n3. TASK DELEGATION: Optimized task placement\n - Reduced network overhead\n - Centralized resource-intensive operations\n - Improved scalability\n\n4. PARALLEL PROCESSING: Optimized fork count and strategy\n - Faster execution across multiple hosts\n - Better resource utilization\n - Scalable to large environments\n"
+}
+
+PLAY RECAP ********************************************************************
+localhost                  : ok=7    changed=1    unreachable=0    failed=0
