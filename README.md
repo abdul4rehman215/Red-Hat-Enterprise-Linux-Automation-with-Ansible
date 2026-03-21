@@ -1,4 +1,4 @@
-# 🧰 Red-Hat-Enterprise-Linux-Automation-with-Ansible - Enterprise Linux Automation Engineering Portfolio
+# 🧰 Red Hat Enterprise Linux Automation with Ansible - Enterprise Linux Automation Engineering Portfolio
 
 > Playbooks • Roles • Infrastructure as Code • Orchestration • Security • Performance
 
