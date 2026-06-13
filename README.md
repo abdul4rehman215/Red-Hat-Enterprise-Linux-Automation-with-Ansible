@@ -644,6 +644,14 @@ This repository reflects responsible, enterprise-focused automation engineering 
 
 ---
 
+## 🌐 Labs Portfolio Post on LinkedIn
+
+I also shared this Lab series Portfolio on LinkedIn with a concise portfolio summary, key highlights, and implementation context.
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-View%20Project%20Post-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/posts/abdul4rehman215_rhel-automation-with-ansible-labs-repo-portfolio-activity-7456002013336760320-hAwO?)
+
+---
+
 ## ⭐ Final Note
 
 This repository reflects **execution-driven Enterprise Linux automation engineering** — not theory.
